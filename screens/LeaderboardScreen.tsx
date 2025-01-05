@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
 import { ref, query, orderByChild, limitToLast, get } from 'firebase/database';
-import { db } from '../config/firebase.config'; 
+import { db } from '../config/firebase.config';
 
 interface UserScore {
     id: string;
@@ -20,12 +20,12 @@ export default function LeaderboardScreen() {
 
     const loadLeaderboard = async () => {
         try {
-          
-            
+
+
             const leaderboardQuery = query(
-                ref(db, 'users'), 
-                orderByChild('score'), 
-                limitToLast(20) 
+                ref(db, 'users'),
+                orderByChild('score'),
+                limitToLast(20)
             );
 
             const snapshot = await get(leaderboardQuery);
