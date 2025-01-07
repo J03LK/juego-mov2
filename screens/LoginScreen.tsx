@@ -1,10 +1,17 @@
 import React, { useState } from 'react';
 import { View, TextInput, TouchableOpacity, Text, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { ref, get } from 'firebase/database';
-import { db } from '../config/firebase.config'; // Asegúrate de importar la configuración correcta de Firebase.
+import { db } from '../config/firebase.config';
+
+// Definimos la interfaz para el usuario
+interface User {
+    email: string;
+    password: string;
+    username: string;
+}
 
 interface LoginScreenProps {
-    navigation: any; // Si estás usando `@react-navigation/native-stack`, ajusta el tipo según corresponda.
+    navigation: any;
 }
 
 export default function LoginScreen({ navigation }: LoginScreenProps) {
@@ -23,19 +30,20 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
         setError('');
 
         try {
-            // Referencia a los usuarios en la base de datos
             const usersRef = ref(db, 'users');
             const snapshot = await get(usersRef);
 
             if (snapshot.exists()) {
                 const users = snapshot.val();
                 const user = Object.values(users).find(
-                    (u: any) => u.email === email && u.password === password
-                );
+                    (u: User) => u.email === email && u.password === password
+                ) as User | undefined;
 
-                if (user) {
+                console.log('User found:', user);
+
+                if (user && user.username) {
                     Alert.alert('¡Éxito!', 'Inicio de sesión correcto');
-                    navigation.replace('Game'); // Redirige al juego
+                    navigation.replace('Game', { username: user.username });
                 } else {
                     setError('Email o contraseña incorrectos');
                 }
@@ -43,7 +51,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
                 setError('No se encontraron usuarios registrados');
             }
         } catch (err: any) {
-            console.error(err);
+            console.error('Error al iniciar sesión:', err);
             setError('Error al iniciar sesión');
         } finally {
             setLoading(false);
@@ -87,6 +95,13 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
                 )}
             </TouchableOpacity>
 
+            <TouchableOpacity
+                style={[styles.rankingButton]}
+                onPress={() => navigation.navigate('Leaderboard')}
+            >
+                <Text style={styles.buttonText}>🏆 Ver Ranking</Text>
+            </TouchableOpacity>
+
             <TouchableOpacity onPress={() => navigation.navigate('Register')} disabled={loading}>
                 <Text style={styles.link}>¿No tienes cuenta? Regístrate</Text>
             </TouchableOpacity>
@@ -115,6 +130,12 @@ const styles = StyleSheet.create({
     },
     button: {
         backgroundColor: '#007AFF',
+        padding: 15,
+        borderRadius: 5,
+        marginTop: 10,
+    },
+    rankingButton: {
+        backgroundColor: '#4CAF50', // Color verde para diferenciarlo
         padding: 15,
         borderRadius: 5,
         marginTop: 10,
