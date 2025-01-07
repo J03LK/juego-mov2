@@ -74,10 +74,10 @@ export default function RegisterScreen() {
                 },
                 createdAt: new Date().toISOString(),
             };
-            
+
             // Guardar usando el username como ID
             await set(ref(db, `users/${userId}`), userData);
-            
+
 
             Alert.alert(
                 '¡Éxito!',
@@ -99,6 +99,7 @@ export default function RegisterScreen() {
 
     return (
         <View style={styles.container}>
+            <Text style={styles.title}>REGISTRO</Text>
             <TextInput
                 style={styles.input}
                 placeholder="Nombre de usuario"
@@ -137,17 +138,25 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
         padding: 20,
+        justifyContent: 'center',
+        backgroundColor: '#E6F7FF', // Fondo sugerido
+    },
+    title: {
+        fontSize: 30,
+        textAlign: 'center',
+        fontWeight: 'bold',
+        color: 'black',
+        marginBottom: 15,
     },
     input: {
         width: '100%',
         padding: 10,
         marginVertical: 10,
         borderWidth: 1,
-        borderColor: '#ddd',
+        borderColor: 'black',
         borderRadius: 5,
+        backgroundColor: 'white',
     },
     button: {
         width: '100%',

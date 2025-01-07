@@ -59,6 +59,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
     };
 
     return (
+        
         <View style={styles.container}>
             <Text style={styles.title}>Ahorcado - Login</Text>
 
@@ -94,6 +95,16 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
                     <Text style={styles.buttonText}>Iniciar Sesión</Text>
                 )}
             </TouchableOpacity>
+            <TouchableOpacity 
+                onPress={() => navigation.navigate('Github')} 
+                disabled={loading} 
+                style={styles.creatorsButton} 
+            > 
+                <Text style={styles.creatorsButtonText}>Creadores</Text> 
+            </TouchableOpacity> 
+            
+            
+            
 
             <TouchableOpacity
                 style={[styles.rankingButton]}
@@ -114,19 +125,38 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 20,
         justifyContent: 'center',
+        backgroundColor: '#E6F7FF', 
     },
+    creatorsButtonText: { 
+        fontSize: 15, 
+        color: 'white', 
+        fontWeight: 'bold', 
+    }, 
     title: {
         fontSize: 24,
         fontWeight: 'bold',
         marginBottom: 20,
         textAlign: 'center',
     },
+    creatorsButton: { 
+        backgroundColor: '#00BFFF',   
+        paddingVertical: 15, 
+        paddingHorizontal: 25, 
+        marginTop: 20, 
+        alignItems: 'center', 
+        shadowColor: '#000',   
+        shadowOffset: { width: 0, height: 2 }, 
+        shadowOpacity: 0.2, 
+        shadowRadius: 3.5, 
+        elevation: 5,  
+    }, 
     input: {
         borderWidth: 1,
-        borderColor: '#ddd',
+        borderColor: 'black',
         padding: 10,
         marginBottom: 10,
         borderRadius: 5,
+        backgroundColor: 'white',
     },
     button: {
         backgroundColor: '#007AFF',
@@ -135,7 +165,7 @@ const styles = StyleSheet.create({
         marginTop: 10,
     },
     rankingButton: {
-        backgroundColor: '#4CAF50', // Color verde para diferenciarlo
+        backgroundColor: '#4CAF50', 
         padding: 15,
         borderRadius: 5,
         marginTop: 10,
