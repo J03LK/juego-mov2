@@ -7,14 +7,13 @@ import { getDatabase } from "firebase/database"
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-    apiKey: "AIzaSyCmGgs4S8DbIMKQEyCd0Za-H-2Bmz_TT5c",
-    authDomain: "ahorcado-1dc6a.firebaseapp.com",
-    databaseURL: "https://ahorcado-1dc6a-default-rtdb.firebaseio.com",
-    projectId: "ahorcado-1dc6a",
-    storageBucket: "ahorcado-1dc6a.firebasestorage.app",
-    messagingSenderId: "891306748972",
-    appId: "1:891306748972:web:f4cc747deb63c0a55d3589",
-    measurementId: "G-QRCLR5EMN8"
+    apiKey: "AIzaSyASxNnhh7woE3FnPSGVp3Mk3V75zbWWm0k",
+    authDomain: "ahorcado-32c8e.firebaseapp.com",
+    projectId: "ahorcado-32c8e",
+    storageBucket: "ahorcado-32c8e.firebasestorage.app",
+    messagingSenderId: "460200584469",
+    appId: "1:460200584469:web:47fe097eebd975fe5e751c",
+    measurementId: "G-YCM4LHNWW2"
 };
 
 // Initialize Firebase

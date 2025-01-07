@@ -20,37 +20,36 @@ export default function LeaderboardScreen() {
 
     const loadLeaderboard = async () => {
         try {
-
-
-            const leaderboardQuery = query(
-                ref(db, 'users'),
-                orderByChild('score'),
-                limitToLast(20)
-            );
-
-            const snapshot = await get(leaderboardQuery);
-
+            const usersRef = ref(db, 'users');
+            const snapshot = await get(usersRef);
+            
             if (snapshot.exists()) {
                 const leaderboardData: UserScore[] = [];
+                
                 snapshot.forEach((child) => {
                     const data = child.val();
+                    console.log('Raw user data:', data); // Para debugging
+                    
+                    // Accedemos a los datos correctamente a través de gameStats
                     leaderboardData.push({
-                        id: child.key as string,
-                        username: data.username,
-                        score: data.score,
-                        gamesPlayed: data.gamesPlayed,
+                        id: child.key || '',
+                        username: data.username || 'Usuario',
+                        score: data.gameStats?.score || 0,
+                        gamesPlayed: data.gameStats?.gamesPlayed || 0
                     });
                 });
 
-                // Ordenar en orden descendente, ya que `limitToLast` da los últimos elementos
-                leaderboardData.sort((a, b) => b.score - a.score);
-
-                setScores(leaderboardData);
+                // Ordenamos por puntuación de mayor a menor
+                const sortedData = leaderboardData.sort((a, b) => b.score - a.score);
+                console.log('Sorted leaderboard data:', sortedData); // Para debugging
+                
+                setScores(sortedData);
             } else {
+                console.log('No hay datos disponibles');
                 setScores([]);
             }
         } catch (error) {
-            console.error('Error loading leaderboard:', error);
+            console.error('Error cargando el leaderboard:', error);
         } finally {
             setLoading(false);
         }
@@ -76,20 +75,26 @@ export default function LeaderboardScreen() {
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Tabla de Puntuaciones</Text>
+            
+            {scores.length > 0 ? (
+                <>
+                    <View style={styles.headerRow}>
+                        <Text style={styles.headerPosition}>#</Text>
+                        <Text style={styles.headerUsername}>Usuario</Text>
+                        <Text style={styles.headerScore}>Puntos</Text>
+                        <Text style={styles.headerGames}>Juegos</Text>
+                    </View>
 
-            <View style={styles.headerRow}>
-                <Text style={styles.headerPosition}>#</Text>
-                <Text style={styles.headerUsername}>Usuario</Text>
-                <Text style={styles.headerScore}>Puntos</Text>
-                <Text style={styles.headerGames}>Juegos</Text>
-            </View>
-
-            <FlatList
-                data={scores}
-                renderItem={renderItem}
-                keyExtractor={(item) => item.id}
-                contentContainerStyle={styles.listContainer}
-            />
+                    <FlatList
+                        data={scores}
+                        renderItem={renderItem}
+                        keyExtractor={(item) => item.id}
+                        contentContainerStyle={styles.listContainer}
+                    />
+                </>
+            ) : (
+                <Text style={styles.noDataText}>No hay puntuaciones disponibles</Text>
+            )}
         </View>
     );
 }
@@ -98,6 +103,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 16,
+        backgroundColor: '#fff',
     },
     loadingContainer: {
         flex: 1,
@@ -163,6 +169,12 @@ const styles = StyleSheet.create({
         width: 80,
         textAlign: 'right',
         fontSize: 14,
+        color: '#666',
+    },
+    noDataText: {
+        textAlign: 'center',
+        fontSize: 16,
+        marginTop: 20,
         color: '#666',
     },
 });

@@ -1,23 +1,22 @@
-// App.tsx
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { db } from './config/firebase.config';
 import LoginScreen from './screens/LoginScreen';
-import RegisterScreen from './screens/RegisterScreen';
 import GameScreen from './screens/GameScreen';
+import RegisterScreen from './screens/RegisterScreen';
 import LeaderboardScreen from './screens/LeaderboardScreen';
 
-// Tipos
-type RootStackParamList = {
+// Definir los tipos para la navegación
+export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
-  Game: undefined;
+  Game: { username: string };
   Leaderboard: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-// Componente principal
 export default function App() {
   return (
     <NavigationContainer>
