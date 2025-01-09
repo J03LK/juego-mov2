@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, TextInput, TouchableOpacity, Text, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { ref, get } from 'firebase/database';
 import { db } from '../config/firebase.config';
+import { Image } from 'react-native';
 
 // Definimos la interfaz para el usuario
 interface User {
@@ -59,9 +60,14 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
     };
 
     return (
-        
         <View style={styles.container}>
             <Text style={styles.title}>Ahorcado - Login</Text>
+
+    
+            <Image
+                source={{ uri: 'https://cdn-icons-png.flaticon.com/512/2273/2273583.png' }}  
+                style={styles.image}  
+            />
 
             <TextInput
                 style={styles.input}
@@ -95,6 +101,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
                     <Text style={styles.buttonText}>Iniciar Sesión</Text>
                 )}
             </TouchableOpacity>
+
             <TouchableOpacity 
                 onPress={() => navigation.navigate('Github')} 
                 disabled={loading} 
@@ -102,9 +109,6 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
             > 
                 <Text style={styles.creatorsButtonText}>Creadores</Text> 
             </TouchableOpacity> 
-            
-            
-            
 
             <TouchableOpacity
                 style={[styles.rankingButton]}
@@ -187,4 +191,12 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginTop: 15,
     },
+    image: {
+        width: 200,   
+        height: 200,  
+        resizeMode: 'contain', 
+        marginBottom: 20, 
+        alignSelf: 'center',
+    },
+
 });

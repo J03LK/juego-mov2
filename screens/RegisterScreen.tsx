@@ -7,7 +7,8 @@ import {
     StyleSheet,
     Alert,
     ActivityIndicator,
-    Dimensions
+    Dimensions,
+    Image
 } from 'react-native';
 import { ref, set, get } from 'firebase/database';
 import { db } from '../config/firebase.config';
@@ -78,7 +79,6 @@ export default function RegisterScreen() {
             // Guardar usando el username como ID
             await set(ref(db, `users/${userId}`), userData);
 
-
             Alert.alert(
                 '¡Éxito!',
                 'Registro completado correctamente. ¡Puedes comenzar a jugar!',
@@ -100,6 +100,12 @@ export default function RegisterScreen() {
     return (
         <View style={styles.container}>
             <Text style={styles.title}>REGISTRO</Text>
+            
+            <Image
+                source={{ uri: 'https://cdn-icons-png.flaticon.com/512/2273/2273583.png' }}
+                style={styles.image}
+            />
+
             <TextInput
                 style={styles.input}
                 placeholder="Nombre de usuario"
@@ -173,5 +179,12 @@ const styles = StyleSheet.create({
     errorText: {
         color: 'red',
         marginVertical: 10,
+    },
+    image: {
+        width: 200,   
+        height: 200,  
+        resizeMode: 'contain', 
+        marginBottom: 20, 
+        alignSelf: 'center',
     },
 });
