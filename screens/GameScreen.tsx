@@ -16,9 +16,15 @@ import { ref, get, update, child } from 'firebase/database';
 
 const { width } = Dimensions.get('window');
 
+interface WordHint {
+    word: string;
+    hint: string;
+}
+
 interface Level {
-    words: string[];
+    words: WordHint[];
     background: ImageSourcePropType;
+    usedWords?: Set<number>;
 }
 
 interface Levels {
@@ -35,41 +41,67 @@ type GameScreenProps = NativeStackScreenProps<RootStackParamList, 'Game'>;
 
 const LEVELS: Levels = {
     1: {
-        words: ['SOL', 'LUZ', 'MAR'],
+        words: [
+            { word: 'SOL', hint: 'Brilla en el cielo durante el día' },
+            { word: 'LUZ', hint: 'Nos permite ver en la oscuridad' },
+            { word: 'MAR', hint: 'Gran masa de agua salada' }
+        ],
         background: require('../assets/level1.jpg'),
+        usedWords: new Set(),
     },
     2: {
-        words: ['CASA', 'MESA', 'SOPA'],
+        words: [
+            { word: 'CASA', hint: 'Lugar donde vivimos' },
+            { word: 'MESA', hint: 'Mueble para comer o trabajar' },
+            { word: 'SOPA', hint: 'Comida líquida caliente' }
+        ],
         background: require('../assets/level2.jpg'),
+        usedWords: new Set(),
     },
     3: {
-        words: ['PLATO', 'LIBRO', 'PAPEL'],
+        words: [
+            { word: 'PLATO', hint: 'Utensilio para servir comida' },
+            { word: 'LIBRO', hint: 'Contiene historias y conocimiento' },
+            { word: 'PAPEL', hint: 'Material para escribir o dibujar' }
+        ],
         background: require('../assets/level3.jpg'),
+        usedWords: new Set(),
     },
     4: {
-        words: ['VENTANA', 'BOTELLA', 'PESCADO'],
+        words: [
+            { word: 'VENTANA', hint: 'Permite ver hacia afuera de un edificio' },
+            { word: 'BOTELLA', hint: 'Recipiente para líquidos' },
+            { word: 'PESCADO', hint: 'Animal que vive en el agua' }
+        ],
         background: require('../assets/level4.jpg'),
+        usedWords: new Set(),
     },
     5: {
-        words: ['CALENDARIO', 'BIBLIOTECA', 'COMPUTADORA'],
+        words: [
+            { word: 'CALENDARIO', hint: 'Nos ayuda a organizar el tiempo' },
+            { word: 'BIBLIOTECA', hint: 'Lugar lleno de libros' },
+            { word: 'COMPUTADORA', hint: 'Máquina para procesar información' }
+        ],
         background: require('../assets/level5.jpg'),
+        usedWords: new Set(),
     },
 };
 
-const LEVEL_TIME_LIMIT = 120;
+const LEVEL_TIME_LIMIT = 60;
 
 export default function GameScreen({ route, navigation }: GameScreenProps) {
     const { username } = route.params;
     const userId = username.toLowerCase().replace(/\s+/g, '_');
-
     const [currentLevel, setCurrentLevel] = useState<number>(1);
     const [word, setWord] = useState<string>('');
+    const [currentHint, setCurrentHint] = useState<string>(''); // Nuevo estado para la pista
     const [guessedLetters, setGuessedLetters] = useState<Set<string>>(new Set());
     const [score, setScore] = useState<number>(0);
     const [wrongAttempts, setWrongAttempts] = useState<number>(0);
     const [wordsCompletedInLevel, setWordsCompletedInLevel] = useState<number>(0);
     const [timeRemaining, setTimeRemaining] = useState<number>(LEVEL_TIME_LIMIT);
     const [isGameActive, setIsGameActive] = useState<boolean>(true);
+    const [usedWordsInLevel, setUsedWordsInLevel] = useState<number[]>([]); 
 
     useEffect(() => {
         startNewGame();
@@ -133,23 +165,36 @@ export default function GameScreen({ route, navigation }: GameScreenProps) {
                     text: 'Ver Ranking',
                     onPress: () => navigation.navigate('Leaderboard')
                 },
-                {
-                    text: 'Volver al inicio',
-                    onPress: () => navigation.navigate('Login')
-                }
             ]
         );
     };
 
     const startNewGame = (): void => {
-        const levelWords = LEVELS[currentLevel].words;
-        const newWord = levelWords[Math.floor(Math.random() * levelWords.length)];
-        setWord(newWord);
+        const levelData = LEVELS[currentLevel];
+        const availableIndices = Array.from(Array(levelData.words.length).keys())
+            .filter(index => !usedWordsInLevel.includes(index));
+
+        let wordIndex: number;
+        
+        if (availableIndices.length === 0) {
+            // Si todas las palabras fueron usadas, reinicia
+            setUsedWordsInLevel([]);
+            wordIndex = Math.floor(Math.random() * levelData.words.length);
+        } else {
+            // Selecciona una palabra no usada
+            wordIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
+            setUsedWordsInLevel(prev => [...prev, wordIndex]);
+        }
+
+        const selectedWord = levelData.words[wordIndex];
+        setWord(selectedWord.word);
+        setCurrentHint(selectedWord.hint);
         setGuessedLetters(new Set());
         setWrongAttempts(0);
         setTimeRemaining(LEVEL_TIME_LIMIT);
         setIsGameActive(true);
     };
+
 
     const handleTimeUp = (): void => {
         handleEndGame();
@@ -166,6 +211,7 @@ export default function GameScreen({ route, navigation }: GameScreenProps) {
                         onPress: () => {
                             setCurrentLevel((prev) => prev + 1);
                             setWordsCompletedInLevel(0);
+                            setUsedWordsInLevel([]); // Reinicia las palabras usadas para el nuevo nivel
                         },
                     },
                 ]
@@ -173,7 +219,7 @@ export default function GameScreen({ route, navigation }: GameScreenProps) {
         } else {
             handleEndGame();
         }
-    };
+    }
 
     const guessLetter = (letter: string): void => {
         if (!isGameActive || guessedLetters.has(letter)) return;
@@ -245,30 +291,39 @@ export default function GameScreen({ route, navigation }: GameScreenProps) {
 
     return (
         <ImageBackground
-            source={LEVELS[currentLevel].background}
-            style={styles.container}
-        >
-            <View style={[styles.overlay, { backgroundColor: 'rgba(255, 255, 255, 0.5)' }]}>
-                <View style={styles.headerButtons}>
-                    <TouchableOpacity
-                        style={styles.headerButton}
-                        onPress={handleExitGame}
-                    >
-                        <Text style={styles.headerButtonText}>🚪 Salir</Text>
-                    </TouchableOpacity>
+        source={LEVELS[currentLevel].background}
+        style={styles.container}
+    >
+        <View style={[styles.overlay, { backgroundColor: 'rgba(255, 255, 255, 0.5)' }]}>
+            {/* Botones de Salir y Ranking */}
+            <View style={styles.headerButtons}>
+                <TouchableOpacity
+                    style={styles.headerButton}
+                    onPress={handleExitGame}
+                >
+                    <Text style={styles.headerButtonText}>🚪 Salir</Text>
+                </TouchableOpacity>
 
-                    <TouchableOpacity
-                        style={styles.headerButton}
-                        onPress={() => navigation.navigate('Leaderboard')}
-                    >
-                        <Text style={styles.headerButtonText}>🏆 Ranking</Text>
-                    </TouchableOpacity>
-                </View>
+                <TouchableOpacity
+                    style={styles.headerButton}
+                    onPress={() => navigation.navigate('Leaderboard')}
+                >
+                    <Text style={styles.headerButtonText}>🏆 Ranking</Text>
+                </TouchableOpacity>
+            </View>
 
-                <Text style={styles.levelText}>Nivel {currentLevel}</Text>
-                <Text style={styles.timer}>⏱️ {formatTime(timeRemaining)}</Text>
-                <Text style={styles.score}>Puntuación: {score}</Text>
-                <Text style={styles.progress}>Palabras: {wordsCompletedInLevel}/3</Text>
+               {/* Información del nivel */}
+            <Text style={styles.levelText}>Nivel {currentLevel}</Text>
+            <Text style={styles.timer}>⏱️ {formatTime(timeRemaining)}</Text>
+            <Text style={styles.score}>Puntuación: {score}</Text>
+            <Text style={styles.progress}>Palabras: {wordsCompletedInLevel}/3</Text>
+
+            {/* Visualización de la pista */}
+            <View style={styles.hintContainer}>
+                <Text style={styles.hintText}>Pista: {currentHint}</Text>
+            </View>
+
+           
 
                 <HangmanVisual wrongAttempts={wrongAttempts} />
 
@@ -382,6 +437,18 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     letterUsedText: {
-        color: '#555',
+        color: '#ccc',
+    },
+    hintContainer: {
+        backgroundColor: '#ccc',
+        padding: 10,
+        borderRadius: 10,
+        marginVertical: 10,
+        width: '90%',
+    },
+    hintText: {
+        color: 'black',
+        fontSize: 16,
+        textAlign: 'center',
     },
 });
