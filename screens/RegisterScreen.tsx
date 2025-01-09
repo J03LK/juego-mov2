@@ -101,8 +101,9 @@ export default function RegisterScreen() {
         <View style={styles.container}>
             <Text style={styles.title}>REGISTRO</Text>
             
+          
             <Image
-                source={{ uri: 'https://cdn-icons-png.flaticon.com/512/2273/2273583.png' }}
+                source={require('../assets/icono.png')} 
                 style={styles.image}
             />
 

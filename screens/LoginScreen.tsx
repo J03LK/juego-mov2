@@ -43,8 +43,9 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
                 console.log('User found:', user);
 
                 if (user && user.username) {
+                    // Si el usuario es encontrado, iniciar sesión correctamente
                     Alert.alert('¡Éxito!', 'Inicio de sesión correcto');
-                    navigation.replace('Game', { username: user.username });
+                    navigation.replace('Game', { username: user.username }); // Navegar a la pantalla de juego
                 } else {
                     setError('Email o contraseña incorrectos');
                 }
@@ -62,13 +63,13 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Ahorcado - Login</Text>
-
-    
-            <Image
-                source={{ uri: 'https://cdn-icons-png.flaticon.com/512/2273/2273583.png' }}  
-                style={styles.image}  
-            />
-
+            
+          <Image
+                         source={require('../assets/icono.png')} 
+                         style={styles.image}
+                     />
+         
+          
             <TextInput
                 style={styles.input}
                 placeholder="Email"
@@ -88,8 +89,10 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
                 editable={!loading}
             />
 
+            {/* Mostrar error si existe */}
             {error ? <Text style={styles.error}>{error}</Text> : null}
 
+            {/* Botón de inicio de sesión */}
             <TouchableOpacity
                 style={[styles.button, loading && styles.buttonDisabled]}
                 onPress={handleLogin}
@@ -102,6 +105,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
                 )}
             </TouchableOpacity>
 
+            {/* Botón de creadores */}
             <TouchableOpacity 
                 onPress={() => navigation.navigate('Github')} 
                 disabled={loading} 
@@ -110,6 +114,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
                 <Text style={styles.creatorsButtonText}>Creadores</Text> 
             </TouchableOpacity> 
 
+            {/* Botón para ver ranking */}
             <TouchableOpacity
                 style={[styles.rankingButton]}
                 onPress={() => navigation.navigate('Leaderboard')}
@@ -117,6 +122,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
                 <Text style={styles.buttonText}>🏆 Ver Ranking</Text>
             </TouchableOpacity>
 
+            {/* Enlace para registrarse */}
             <TouchableOpacity onPress={() => navigation.navigate('Register')} disabled={loading}>
                 <Text style={styles.link}>¿No tienes cuenta? Regístrate</Text>
             </TouchableOpacity>
@@ -198,5 +204,4 @@ const styles = StyleSheet.create({
         marginBottom: 20, 
         alignSelf: 'center',
     },
-
 });
