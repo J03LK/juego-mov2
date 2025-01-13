@@ -14,6 +14,8 @@ import { ref, set, get } from 'firebase/database';
 import { db } from '../config/firebase.config';
 import { useNavigation } from '@react-navigation/native';
 
+
+
 const { width } = Dimensions.get('window');
 
 export default function RegisterScreen() {

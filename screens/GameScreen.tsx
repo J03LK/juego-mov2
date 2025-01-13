@@ -35,6 +35,7 @@ type RootStackParamList = {
     Login: undefined;
     Game: { username: string };
     Leaderboard: undefined;
+    Profile: { username: string };
 };
 
 type GameScreenProps = NativeStackScreenProps<RootStackParamList, 'Game'>;
@@ -298,7 +299,12 @@ export default function GameScreen({ route, navigation }: GameScreenProps) {
                     >
                         <Text style={styles.headerButtonText}>🚪 Salir</Text>
                     </TouchableOpacity>
-
+                    <TouchableOpacity
+                        style={styles.headerButton}
+                        onPress={() => navigation.navigate('Profile', { username })}
+                    >
+                        <Text style={styles.headerButtonText}>📜 Perfil</Text>
+                    </TouchableOpacity>
                     <TouchableOpacity
                         style={styles.headerButton}
                         onPress={() => navigation.navigate('Leaderboard')}
@@ -355,10 +361,9 @@ const styles = StyleSheet.create({
     headerButtons: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        position: 'absolute',
-        top: 20,
-        left: 20,
-        right: 20,
+        marginTop: 20, // Cambié `position: absolute` por `marginTop` para evitar empujar otros elementos
+        width: '100%',
+        paddingHorizontal: 20,
     },
     headerButton: {
         padding: 10,
@@ -373,8 +378,9 @@ const styles = StyleSheet.create({
     levelText: {
         fontSize: 28,
         fontWeight: 'bold',
-        marginTop: 60,
+        marginTop: 20, // Menor espacio después de los botones
         color: '#333',
+        textAlign: 'center',
     },
     timer: {
         fontSize: 24,
@@ -404,7 +410,8 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         flexWrap: 'wrap',
         justifyContent: 'center',
-        marginTop: 20,
+        marginTop: 10,
+        paddingHorizontal: 10,
     },
     letter: {
         width: 40,

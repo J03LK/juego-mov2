@@ -7,6 +7,7 @@ import RegisterScreen from './screens/RegisterScreen';
 import LeaderboardScreen from './screens/LeaderboardScreen';
 import GithubScreen from './screens/GithubScreen';
 import RestablecerScreen from './screens/Restablecer';
+import ProfileScreen from './screens/ProfileScreen';
 
 // Definir los tipos para la navegación
 export type RootStackParamList = {
@@ -14,8 +15,8 @@ export type RootStackParamList = {
   Register: undefined;
   Game: { username: string };
   Leaderboard: undefined;
-  Github:undefined;
-  Restablecer:undefined
+  Github:undefined
+  Profile: { username: string };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -29,8 +30,7 @@ export default function App() {
         <Stack.Screen name="Game" component={GameScreen} />
         <Stack.Screen name="Leaderboard" component={LeaderboardScreen} />
         <Stack.Screen name="Github" component={GithubScreen} />
-        <Stack.Screen name="Restablecer" component={RestablecerScreen} />
-
+        <Stack.Screen name="Profile" component={ProfileScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

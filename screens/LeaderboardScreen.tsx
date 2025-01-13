@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, StyleSheet, ActivityIndicator, Dimensions } from 'react-native';
 import { ref, query, orderByChild, limitToLast, get } from 'firebase/database';
 import { db } from '../config/firebase.config';
 import { auth } from '../config/firebase.config';
+import { Video } from 'expo-av';
 
 
 interface UserScore {
@@ -24,14 +25,14 @@ export default function LeaderboardScreen() {
         try {
             const usersRef = ref(db, 'users');
             const snapshot = await get(usersRef);
-            
+
             if (snapshot.exists()) {
                 const leaderboardData: UserScore[] = [];
-                
+
                 snapshot.forEach((child) => {
                     const data = child.val();
                     console.log('Raw user data:', data); // Para debugging
-                    
+
                     // Accedemos a los datos correctamente a través de gameStats
                     leaderboardData.push({
                         id: child.key || '',
@@ -44,7 +45,7 @@ export default function LeaderboardScreen() {
                 // Ordenamos por puntuación de mayor a menor
                 const sortedData = leaderboardData.sort((a, b) => b.score - a.score);
                 console.log('Sorted leaderboard data:', sortedData); // Para debugging
-                
+
                 setScores(sortedData);
             } else {
                 console.log('No hay datos disponibles');
@@ -68,7 +69,7 @@ export default function LeaderboardScreen() {
 
     if (loading) {
         return (
-            <View style={styles.loadingContainer}>
+            <View>
                 <ActivityIndicator size="large" color="#007AFF" />
             </View>
         );
@@ -76,47 +77,67 @@ export default function LeaderboardScreen() {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Tabla de Puntuaciones</Text>
-            
-            {scores.length > 0 ? (
-                <>
-                    <View style={styles.headerRow}>
-                        <Text style={styles.headerPosition}>#</Text>
-                        <Text style={styles.headerUsername}>Usuario</Text>
-                        <Text style={styles.headerScore}>Puntos</Text>
-                        <Text style={styles.headerGames}>Juegos</Text>
-                    </View>
+            <Video
+                source={require('../assets/trofeo.mp4')}
+                style={styles.backgroundVideo}
+                shouldPlay
+                isLooping
+                isMuted
+                rate={0.5}
+                volume={0}
+            />
+            <View style={styles.overlay}>
+                <Text style={styles.title}>Tabla de Puntuaciones</Text>
 
-                    <FlatList
-                        data={scores}
-                        renderItem={renderItem}
-                        keyExtractor={(item) => item.id}
-                        contentContainerStyle={styles.listContainer}
-                    />
-                </>
-            ) : (
-                <Text style={styles.noDataText}>No hay puntuaciones disponibles</Text>
-            )}
+                {scores.length > 0 ? (
+                    <>
+                        <View style={styles.headerRow}>
+                            <Text style={styles.headerPosition}>#</Text>
+                            <Text style={styles.headerUsername}>Usuario</Text>
+                            <Text style={styles.headerScore}>Puntos</Text>
+                            <Text style={styles.headerGames}>Juegos</Text>
+                        </View>
+
+                        <FlatList
+                            data={scores}
+                            renderItem={renderItem}
+                            keyExtractor={(item) => item.id}
+                            contentContainerStyle={styles.listContainer}
+                        />
+                    </>
+                ) : (
+                    <Text style={styles.noDataText}>No hay puntuaciones disponibles</Text>
+                )}
+            </View>
         </View>
     );
 }
 
+const { width, height } = Dimensions.get('window');
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 16,
-        backgroundColor: '#fff',
+        backgroundColor: '#000', // Fondo negro
     },
-    loadingContainer: {
+    backgroundVideo: {
+        width: width,
+        height: height,
+        position: 'absolute',
+    },
+    overlay: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)', // Fondo más oscuro para contraste
+        padding: 16,
+        justifyContent: 'center', // Centrar contenido verticalmente
     },
     title: {
-        fontSize: 24,
+        fontSize: 28, // Tamaño de fuente más grande
         fontWeight: 'bold',
         marginBottom: 20,
         textAlign: 'center',
+        color: '#fff', // Texto blanco
+        marginTop: 20, // Espaciado desde arriba
     },
     headerRow: {
         flexDirection: 'row',
@@ -126,57 +147,68 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     },
     headerPosition: {
-        width: 40,
+        width: '10%',
         fontWeight: 'bold',
+        color: '#fff',
+        textAlign: 'center',
     },
     headerUsername: {
-        flex: 2,
+        width: '40%',
         fontWeight: 'bold',
+        color: '#fff',
+        textAlign: 'left',
     },
     headerScore: {
-        width: 70,
-        textAlign: 'right',
+        width: '25%',
+        textAlign: 'center',
         fontWeight: 'bold',
+        color: '#fff',
     },
     headerGames: {
-        width: 80,
-        textAlign: 'right',
+        width: '25%',
+        textAlign: 'center',
         fontWeight: 'bold',
+        color: '#fff',
     },
     listContainer: {
         paddingBottom: 20,
+        marginHorizontal: 16, // Margen para separar la tabla de los bordes
     },
     scoreRow: {
         flexDirection: 'row',
         paddingVertical: 10,
         borderBottomWidth: 1,
-        borderBottomColor: '#ddd',
+        borderBottomColor: 'rgba(255, 255, 255, 0.3)',
         alignItems: 'center',
     },
     position: {
-        width: 40,
+        width: '10%',
         fontSize: 16,
+        color: '#fff',
+        textAlign: 'center',
     },
     username: {
-        flex: 2,
+        width: '40%',
         fontSize: 16,
+        color: '#fff',
     },
     score: {
-        width: 70,
-        textAlign: 'right',
+        width: '25%',
+        textAlign: 'center',
         fontSize: 16,
         fontWeight: 'bold',
+        color: '#fff',
     },
     gamesPlayed: {
-        width: 80,
-        textAlign: 'right',
+        width: '25%',
+        textAlign: 'center',
         fontSize: 14,
-        color: '#666',
+        color: 'rgba(255, 255, 255, 0.7)',
     },
     noDataText: {
         textAlign: 'center',
         fontSize: 16,
         marginTop: 20,
-        color: '#666',
+        color: '#fff',
     },
 });
