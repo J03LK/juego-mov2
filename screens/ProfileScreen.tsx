@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert, Image } from 'react-native';
 import { getDatabase, ref, get, update } from 'firebase/database';
 import { getAuth, updateEmail, updatePassword } from 'firebase/auth';
+import * as ImagePicker from 'expo-image-picker';
 
 interface UserData {
     username: string;
@@ -20,6 +21,7 @@ const ProfileScreen: React.FC = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [userKey, setUserKey] = useState<string | null>(null);
+    const [image, setImage] = useState<string | null>(null);  
 
     const auth = getAuth();
     const db = getDatabase();
@@ -32,14 +34,13 @@ const ProfileScreen: React.FC = () => {
                 return;
             }
 
-            // Buscar datos del usuario en Realtime Database
             const usersRef = ref(db, 'users');
             const snapshot = await get(usersRef);
 
             if (snapshot.exists()) {
                 const users = snapshot.val();
                 for (const key in users) {
-                    if (users[key].email === currentUser.email) { // Cambiado de uid a email
+                    if (users[key].email === currentUser.email) { 
                         setUserKey(key);
                         setUserData({
                             username: users[key].username || '',
@@ -76,44 +77,35 @@ const ProfileScreen: React.FC = () => {
                 return;
             }
     
-            // Validar edad
             const ageNum = parseInt(userData.age);
             if (isNaN(ageNum) || ageNum < 0 || ageNum > 120) {
                 Alert.alert('Error', 'Por favor ingrese una edad válida');
                 return;
             }
     
-            // Preparar actualizaciones para Realtime Database
             const updates: Record<string, any> = {};
             
-            // Actualizar email si ha cambiado
             if (userData.email !== currentUser.email) {
                 await updateEmail(currentUser, userData.email);
                 updates.email = userData.email;
             }
     
-            // Actualizar contraseña si se ha modificado (no es **)
             if (userData.password && userData.password !== '**') {
                 await updatePassword(currentUser, userData.password);
-                // Guardar la contraseña encriptada o un indicador en la base de datos
-                // Considera usar una función de encriptación en lugar de almacenar en texto plano
                 updates.password = userData.password; 
             }
     
-            // Actualizar edad y otros campos
             updates.age = ageNum;
             updates.username = userData.username;
     
-            // Actualizar en la base de datos solo si hay cambios
             if (Object.keys(updates).length > 0) {
                 const userRef = ref(db, `users/${userKey}`);
                 await update(userRef, updates);
     
-                // Actualizar el estado local
                 setUserData(prevData => ({
                     ...prevData,
                     ...updates,
-                    password: '**' // Resetear la visualización de la contraseña
+                    password: '**' 
                 }));
     
                 Alert.alert('Éxito', 'Perfil actualizado correctamente');
@@ -129,7 +121,48 @@ const ProfileScreen: React.FC = () => {
             );
         }
     };
+
+    const pickImage = async () => {
+        const cameraPermission = await ImagePicker.requestCameraPermissionsAsync();
+        const mediaLibraryPermission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     
+        if (cameraPermission.status !== 'granted' || mediaLibraryPermission.status !== 'granted') {
+            alert('Se necesitan permisos para usar la cámara o la galería.');
+            return;
+        }
+    
+        let result = await ImagePicker.launchCameraAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 1,
+        });
+    
+        if (!result.canceled) {
+            setImage(result.assets[0].uri);  
+        }
+    };
+    
+    const pickImageC = async () => {
+        const cameraPermission = await ImagePicker.requestCameraPermissionsAsync();
+        const mediaLibraryPermission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    
+        if (cameraPermission.status !== 'granted' || mediaLibraryPermission.status !== 'granted') {
+            alert('Se necesitan permisos para usar la cámara o la galería.');
+            return;
+        }
+    
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 1,
+        });
+    
+        if (!result.canceled) {
+            setImage(result.assets[0].uri);  
+        }
+    };
 
     return (
         <View style={styles.container}>
@@ -173,6 +206,26 @@ const ProfileScreen: React.FC = () => {
                 />
             </View>
 
+            <TouchableOpacity
+                style={styles.button}
+                onPress={() => {
+                    Alert.alert('Selecciona una opción', '', [
+                        { text: 'Tomar una foto', onPress: pickImage },
+                        { text: 'Seleccionar de la galería', onPress: pickImageC },
+                        { text: 'Cancelar', style: 'cancel' },
+                    ]);
+                }}
+            >
+                <Text style={styles.buttonText}>Tomar o Seleccionar Foto</Text>
+            </TouchableOpacity>
+
+            {image && (
+                <Image
+                    source={{ uri: image }}
+                    style={styles.profileImage}
+                />
+            )}
+
             {!isEditing ? (
                 <TouchableOpacity
                     style={styles.button}
@@ -196,21 +249,24 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 20,
-        backgroundColor: '#fff',
+        backgroundColor: '#2b2b2b',  
     },
     title: {
-        fontSize: 24,
+        fontSize: 28,
         fontWeight: 'bold',
         marginBottom: 20,
         textAlign: 'center',
+        color: '#FF6347', 
+        fontFamily: 'Courier New',  
     },
     inputContainer: {
         marginBottom: 15,
     },
     label: {
-        fontSize: 16,
+        fontSize: 18,
         marginBottom: 5,
         fontWeight: '500',
+        color: '#fff',
     },
     input: {
         borderWidth: 1,
@@ -218,23 +274,33 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         padding: 10,
         fontSize: 16,
+        color: '#fff',
+        backgroundColor: '#333', 
     },
     staticText: {
         fontSize: 16,
         padding: 10,
-        color: '#666',
+        color: '#bbb',
     },
     button: {
-        backgroundColor: '#007AFF',
+        backgroundColor: '#FF6347',  
         padding: 15,
         borderRadius: 8,
         alignItems: 'center',
         marginTop: 20,
+        borderWidth: 2,
+        borderColor: '#fff',
     },
     buttonText: {
         color: '#fff',
         fontSize: 16,
         fontWeight: 'bold',
+    },
+    profileImage: {
+        width: 250,
+        height: 250,
+        borderRadius: 10,
+        marginTop: 20,
     },
 });
 

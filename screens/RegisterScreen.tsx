@@ -42,7 +42,7 @@ export default function RegisterScreen() {
         setError('');
     
         try {
-            // Crear usuario con Firebase Authentication
+          
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
     
@@ -62,7 +62,7 @@ export default function RegisterScreen() {
                 createdAt: new Date().toISOString(),
             };
     
-            // Guardar en la base de datos usando el username como ID
+         
             await set(ref(db, `users/${userId}`), userData);
     
             Alert.alert(
@@ -78,7 +78,7 @@ export default function RegisterScreen() {
         } catch (err: any) {
             console.error(err);
     
-            // Manejo de errores de Firebase Authentication
+          
             switch (err.code) {
                 case 'auth/email-already-in-use':
                     setError('El email ya está en uso');
