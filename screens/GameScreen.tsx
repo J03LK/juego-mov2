@@ -150,8 +150,6 @@ export default function GameScreen({ route, navigation }: GameScreenProps) {
             return false;
         }
     };
-    
-    
 
     const handleEndGame = async (): Promise<void> => {
         setIsGameActive(false);
@@ -177,24 +175,21 @@ export default function GameScreen({ route, navigation }: GameScreenProps) {
         let wordIndex: number;
         
         if (availableIndices.length === 0) {
-            // Si todas las palabras fueron usadas, reinicia
             setUsedWordsInLevel([]);
             wordIndex = Math.floor(Math.random() * levelData.words.length);
         } else {
-            // Selecciona una palabra no usada
             wordIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
             setUsedWordsInLevel(prev => [...prev, wordIndex]);
         }
 
         const selectedWord = levelData.words[wordIndex];
         setWord(selectedWord.word);
-        setCurrentHint(selectedWord.hint);
+        setCurrentHint(selectedWord.hint); // Asegura que la pista se actualice
         setGuessedLetters(new Set());
         setWrongAttempts(0);
         setTimeRemaining(LEVEL_TIME_LIMIT);
         setIsGameActive(true);
     };
-
 
     const handleTimeUp = (): void => {
         handleEndGame();
@@ -204,14 +199,14 @@ export default function GameScreen({ route, navigation }: GameScreenProps) {
         if (currentLevel < 5) {
             Alert.alert(
                 '¡Nivel Completado!',
-                `¡Felicitaciones! Has completado el nivel ${currentLevel}`,
+                `¡Felicitaciones, ${username}! Has completado el nivel ${currentLevel}`,
                 [
                     {
                         text: 'Siguiente Nivel',
                         onPress: () => {
                             setCurrentLevel((prev) => prev + 1);
                             setWordsCompletedInLevel(0);
-                            setUsedWordsInLevel([]); // Reinicia las palabras usadas para el nuevo nivel
+                            setUsedWordsInLevel([]);
                         },
                     },
                 ]
@@ -219,7 +214,7 @@ export default function GameScreen({ route, navigation }: GameScreenProps) {
         } else {
             handleEndGame();
         }
-    }
+    };
 
     const guessLetter = (letter: string): void => {
         if (!isGameActive || guessedLetters.has(letter)) return;
@@ -291,39 +286,37 @@ export default function GameScreen({ route, navigation }: GameScreenProps) {
 
     return (
         <ImageBackground
-        source={LEVELS[currentLevel].background}
-        style={styles.container}
-    >
-        <View style={[styles.overlay, { backgroundColor: 'rgba(255, 255, 255, 0.5)' }]}>
-            {/* Botones de Salir y Ranking */}
-            <View style={styles.headerButtons}>
-                <TouchableOpacity
-                    style={styles.headerButton}
-                    onPress={handleExitGame}
-                >
-                    <Text style={styles.headerButtonText}>🚪 Salir</Text>
-                </TouchableOpacity>
+            source={LEVELS[currentLevel].background}
+            style={styles.container}
+        >
+            <View style={[styles.overlay, { backgroundColor: 'rgba(255, 255, 255, 0.5)' }]}>
+                {/* Botones de Salir y Ranking */}
+                <View style={styles.headerButtons}>
+                    <TouchableOpacity
+                        style={styles.headerButton}
+                        onPress={handleExitGame}
+                    >
+                        <Text style={styles.headerButtonText}>🚪 Salir</Text>
+                    </TouchableOpacity>
 
-                <TouchableOpacity
-                    style={styles.headerButton}
-                    onPress={() => navigation.navigate('Leaderboard')}
-                >
-                    <Text style={styles.headerButtonText}>🏆 Ranking</Text>
-                </TouchableOpacity>
-            </View>
+                    <TouchableOpacity
+                        style={styles.headerButton}
+                        onPress={() => navigation.navigate('Leaderboard')}
+                    >
+                        <Text style={styles.headerButtonText}>🏆 Ranking</Text>
+                    </TouchableOpacity>
+                </View>
 
-               {/* Información del nivel */}
-            <Text style={styles.levelText}>Nivel {currentLevel}</Text>
-            <Text style={styles.timer}>⏱️ {formatTime(timeRemaining)}</Text>
-            <Text style={styles.score}>Puntuación: {score}</Text>
-            <Text style={styles.progress}>Palabras: {wordsCompletedInLevel}/3</Text>
+                {/* Información del nivel */}
+                <Text style={styles.levelText}>Nivel {currentLevel}</Text>
+                <Text style={styles.timer}>⏱️ {formatTime(timeRemaining)}</Text>
+                <Text style={styles.score}>Puntuación: {score}</Text>
+                <Text style={styles.progress}>Palabras: {wordsCompletedInLevel}/3</Text>
 
-            {/* Visualización de la pista */}
-            <View style={styles.hintContainer}>
-                <Text style={styles.hintText}>Pista: {currentHint}</Text>
-            </View>
-
-           
+                {/* Visualización de la pista */}
+                <View style={styles.hintContainer}>
+                    <Text style={styles.hintText}>Pista: {currentHint}</Text>
+                </View>
 
                 <HangmanVisual wrongAttempts={wrongAttempts} />
 
@@ -333,18 +326,12 @@ export default function GameScreen({ route, navigation }: GameScreenProps) {
                     {'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ'.split('').map((letter) => (
                         <TouchableOpacity
                             key={letter}
-                            style={[
-                                styles.letter,
-                                guessedLetters.has(letter) && styles.letterUsed,
-                            ]}
+                            style={[styles.letter, guessedLetters.has(letter) && styles.letterUsed]}
                             onPress={() => guessLetter(letter)}
                             disabled={guessedLetters.has(letter)}
                         >
                             <Text
-                                style={[
-                                    styles.letterText,
-                                    guessedLetters.has(letter) && styles.letterUsedText,
-                                ]}
+                                style={[styles.letterText, guessedLetters.has(letter) && styles.letterUsedText]}
                             >
                                 {letter}
                             </Text>

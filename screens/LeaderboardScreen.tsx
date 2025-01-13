@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
 import { ref, query, orderByChild, limitToLast, get } from 'firebase/database';
 import { db } from '../config/firebase.config';
+import { auth } from '../config/firebase.config';
+
 
 interface UserScore {
     id: string;

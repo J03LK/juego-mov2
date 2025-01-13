@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { View, TextInput, TouchableOpacity, Text, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { ref, get } from 'firebase/database';
-import { db } from '../config/firebase.config';
+import { auth, db } from '../config/firebase.config';
 import { Image } from 'react-native';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 
 // Definimos la interfaz para el usuario
 interface User {
@@ -26,39 +27,61 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
             setError('Por favor completa todos los campos');
             return;
         }
-
+    
         setLoading(true);
         setError('');
-
+    
         try {
-            const usersRef = ref(db, 'users');
+            // Utilizando Firebase Authentication para iniciar sesión con email y contraseña
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+    
+            console.log('User found:', user);
+    
+            // Buscamos el username en la base de datos, ya que displayName no siempre estará disponible
+            const usersRef = ref(db, 'users'); // Referencia a la ubicación en la base de datos
             const snapshot = await get(usersRef);
-
+    
+            let username = '';
+    
+            // Verificamos si los usuarios existen en la base de datos
             if (snapshot.exists()) {
                 const users = snapshot.val();
-                const user = Object.values(users).find(
-                    (u: User) => u.email === email && u.password === password
-                ) as User | undefined;
-
-                console.log('User found:', user);
-
-                if (user && user.username) {
-                    // Si el usuario es encontrado, iniciar sesión correctamente
-                    Alert.alert('¡Éxito!', 'Inicio de sesión correcto');
-                    navigation.replace('Game', { username: user.username }); // Navegar a la pantalla de juego
-                } else {
-                    setError('Email o contraseña incorrectos');
+                const userFromDb = Object.values(users).find(
+                    (u: any) => u.email === email // Verificamos por el correo electrónico
+                );
+    
+                if (userFromDb) {
+                    username = userFromDb.username; // Obtenemos el username de la base de datos
                 }
-            } else {
-                setError('No se encontraron usuarios registrados');
             }
+    
+            // Si se encuentra un username, navegar a la pantalla de juego
+            if (username) {
+                Alert.alert('¡Éxito!', 'Inicio de sesión correcto');
+                navigation.replace('Game', { username }); // Navegar a la pantalla de juego con el username
+            } else {
+                setError('No se encontró un nombre de usuario asociado.');
+            }
+    
         } catch (err: any) {
             console.error('Error al iniciar sesión:', err);
-            setError('Error al iniciar sesión');
+    
+            // Lógica de manejo de errores
+            switch (err.code) {
+                case 'auth/user-not-found':
+                case 'auth/wrong-password':
+                    setError('Email o contraseña incorrectos');
+                    break;
+                default:
+                    setError('Error al iniciar sesión');
+                    break;
+            }
         } finally {
             setLoading(false);
         }
     };
+    
 
     return (
         <View style={styles.container}>
