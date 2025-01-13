@@ -10,8 +10,6 @@ import {
     Dimensions,
     Image
 } from 'react-native';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../config/firebase.config';
 import { ref, set, get } from 'firebase/database';
 import { db } from '../config/firebase.config';
 import { useNavigation } from '@react-navigation/native';
@@ -62,32 +60,33 @@ export default function RegisterScreen() {
                 return;
             }
 
-            await createUserWithEmailAndPassword(auth, email, password)
-                .then((userCredential) => {
-                    const user = userCredential.user;
+            const userId = username.toLowerCase().replace(/\s+/g, '_');
 
-                    const userId = user.uid;
+            const userData = {
+                username,
+                email,
+                password,
+                gameStats: {
+                    score: 0,
+                    gamesPlayed: 0,
+                    highestScore: 0,
+                    lastGameDate: null
+                },
+                createdAt: new Date().toISOString(),
+            };
 
-                    const userData = {
-                        username,
-                        email,
-                        createdAt: new Date().toISOString(),
-                        gameStats: {
-                            score: 0,
-                            gamesPlayed: 0,
-                            highestScore: 0,
-                            lastGameDate: null,
-                        },
-                    };
+            await set(ref(db, `users/${userId}`), userData);
 
-                
-                    set(ref(db, `users/${userId}`), userData);
-
-                    Alert.alert('¡Éxito!', 'Registro completado correctamente');
-
-                 
-                    navigation.navigate('Login');
-                });
+            Alert.alert(
+                '¡Éxito!',
+                'Registro completado correctamente. ¡Puedes comenzar a jugar!',
+                [
+                    {
+                        text: 'OK',
+                        onPress: () => navigation.navigate('Login' as never)
+                    }
+                ]
+            );
         } catch (err: any) {
             console.error(err);
             setError('Error al registrar usuario');
@@ -99,7 +98,7 @@ export default function RegisterScreen() {
     return (
         <View style={styles.container}>
             <Text style={styles.title}>REGISTRO</Text>
-
+            
             <Image
                 source={require('../assets/icono.png')} 
                 style={styles.image}
