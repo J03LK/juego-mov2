@@ -1,13 +1,9 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getDatabase } from "firebase/database"
-import { getAuth } from "firebase/auth";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+import { initializeApp } from 'firebase/app';
+import { getDatabase } from 'firebase/database';
+import { getAuth } from 'firebase/auth';
 
-// Your web app's Firebase configuration 
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional 
-const firebaseConfig = { 
+// Configuración de Firebase
+const firebaseConfig = {
     apiKey: "AIzaSyD-yn6RuUH7jTSvCGNYJvG5rjiAlyQe_WM", 
     authDomain: "juego-eab88.firebaseapp.com", 
     databaseURL: "https://juego-eab88-default-rtdb.firebaseio.com", 
@@ -16,9 +12,11 @@ const firebaseConfig = {
     messagingSenderId: "1006736094195", 
     appId: "1:1006736094195:web:ba3ef22d21ed0e8a54d886", 
     measurementId: "G-S8WS2LD59Y" 
-  }; 
-   
-  // Initialize Firebase 
-  const app = initializeApp(firebaseConfig);
-  export const db = getDatabase();
-  export const auth = getAuth(app)
+};
+
+// Inicializar Firebase
+const app = initializeApp(firebaseConfig);
+
+
+export const db = getDatabase(app); 
+export const auth = getAuth(app);
