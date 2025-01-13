@@ -15,7 +15,8 @@ export type RootStackParamList = {
   Register: undefined;
   Game: { username: string };
   Leaderboard: undefined;
-  Github:undefined
+  Github:undefined,
+  Restablecer:undefined
   Profile: { username: string };
 };
 
@@ -31,6 +32,7 @@ export default function App() {
         <Stack.Screen name="Leaderboard" component={LeaderboardScreen} />
         <Stack.Screen name="Github" component={GithubScreen} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
+        <Stack.Screen name="Restablecer" component={RestablecerScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

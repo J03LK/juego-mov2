@@ -1,4 +1,4 @@
-import { Button, StyleSheet, Text, View, TextInput, Alert } from 'react-native';
+import { Button, StyleSheet, Text, View, TextInput, Alert, Image, TouchableOpacity } from 'react-native';
 import React, { useState } from 'react';
 //FIREBASE
 import { sendPasswordResetEmail } from 'firebase/auth';
@@ -26,16 +26,23 @@ export default function RestablecerScreen() {
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Restablecer Contraseña</Text>
+            <Image
+                source={require('../assets/seguridad.png')}
+                style={styles.image}
+            />
+
             <Text style={styles.subtitle}>Ingresa tu correo para recibir un enlace de restablecimiento</Text>
-            
+
             <TextInput
                 placeholder="Correo Electrónico"
                 style={styles.input}
                 keyboardType="email-address"
                 onChangeText={(texto) => setEmail(texto)}
             />
+            <TouchableOpacity onPress={restablecer} style={styles.button}>
+                <Text style={styles.buttonText}>Enviar</Text>
+            </TouchableOpacity>
             
-            <Button title="Enviar" onPress={restablecer} color="green" />
         </View>
     );
 }
@@ -46,13 +53,35 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         padding: 20,
-        backgroundColor: '#f7f7f7',
+        backgroundColor: '#E6F7FF',
+    },
+    button: {
+        width: '100%',
+        padding: 15,
+        backgroundColor: '#1a7',
+        borderRadius: 10,
+        alignItems: 'center',
+        marginTop: 20,
+        shadowColor: '#000',
+        shadowOpacity: 0.1,
+        shadowRadius: 5,
+        elevation: 3,
+    },
+    buttonText: {
+        color: '#fff',
+        fontWeight: 'bold',
     },
     title: {
         fontSize: 28,
         fontWeight: 'bold',
         marginBottom: 20,
         color: '#333',
+    },
+    image: {
+        width: 150,
+        height: 150,
+        marginBottom: 30,
+        alignSelf: 'center',
     },
     subtitle: {
         fontSize: 16,
