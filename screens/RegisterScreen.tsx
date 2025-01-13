@@ -11,8 +11,9 @@ import {
     Image
 } from 'react-native';
 import { ref, set, get } from 'firebase/database';
-import { db } from '../config/firebase.config';
+import { auth, db } from '../config/firebase.config';
 import { useNavigation } from '@react-navigation/native';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
 
 
 
@@ -31,41 +32,27 @@ export default function RegisterScreen() {
             setError('Por favor completa todos los campos');
             return;
         }
-
+    
         if (password.length < 6) {
             setError('La contraseña debe tener al menos 6 caracteres');
             return;
         }
-
+    
         setLoading(true);
         setError('');
-
+    
         try {
-            const userRef = ref(db, `users`);
-            const snapshot = await get(userRef);
-            let userExists = false;
-
-            if (snapshot.exists()) {
-                snapshot.forEach((childSnapshot) => {
-                    const userData = childSnapshot.val();
-                    if (userData.email === email || userData.username === username) {
-                        userExists = true;
-                    }
-                });
-            }
-
-            if (userExists) {
-                setError('El usuario o email ya existe');
-                setLoading(false);
-                return;
-            }
-
+            // Crear usuario con Firebase Authentication
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+    
+            // Crear un ID único basado en el username
             const userId = username.toLowerCase().replace(/\s+/g, '_');
-
+    
             const userData = {
                 username,
-                email,
-                password,
+                email: user.email, // Asegurarse de usar el email proporcionado por Firebase
+                password, // Aunque no se recomienda guardar contraseñas en texto plano
                 gameStats: {
                     score: 0,
                     gamesPlayed: 0,
@@ -74,9 +61,10 @@ export default function RegisterScreen() {
                 },
                 createdAt: new Date().toISOString(),
             };
-
+    
+            // Guardar en la base de datos usando el username como ID
             await set(ref(db, `users/${userId}`), userData);
-
+    
             Alert.alert(
                 '¡Éxito!',
                 'Registro completado correctamente. ¡Puedes comenzar a jugar!',
@@ -89,7 +77,22 @@ export default function RegisterScreen() {
             );
         } catch (err: any) {
             console.error(err);
-            setError('Error al registrar usuario');
+    
+            // Manejo de errores de Firebase Authentication
+            switch (err.code) {
+                case 'auth/email-already-in-use':
+                    setError('El email ya está en uso');
+                    break;
+                case 'auth/invalid-email':
+                    setError('El email proporcionado no es válido');
+                    break;
+                case 'auth/weak-password':
+                    setError('La contraseña es demasiado débil');
+                    break;
+                default:
+                    setError('Error al registrar usuario');
+                    break;
+            }
         } finally {
             setLoading(false);
         }
