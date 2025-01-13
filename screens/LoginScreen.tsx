@@ -5,13 +5,6 @@ import { auth, db } from '../config/firebase.config';
 import { Image } from 'react-native';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 
-// Definimos la interfaz para el usuario
-interface User {
-    email: string;
-    password: string;
-    username: string;
-}
-
 interface LoginScreenProps {
     navigation: any;
 }
@@ -32,34 +25,28 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
         setError('');
     
         try {
-            // Utilizando Firebase Authentication para iniciar sesión con email y contraseña
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
-    
             console.log('User found:', user);
-    
-            // Buscamos el username en la base de datos, ya que displayName no siempre estará disponible
-            const usersRef = ref(db, 'users'); // Referencia a la ubicación en la base de datos
+            const usersRef = ref(db, 'users');
             const snapshot = await get(usersRef);
     
             let username = '';
     
-            // Verificamos si los usuarios existen en la base de datos
             if (snapshot.exists()) {
                 const users = snapshot.val();
                 const userFromDb = Object.values(users).find(
-                    (u: any) => u.email === email // Verificamos por el correo electrónico
+                    (u: any) => u.email === email
                 );
     
                 if (userFromDb) {
-                    username = userFromDb.username; // Obtenemos el username de la base de datos
+                    username = userFromDb.username;
                 }
             }
     
-            // Si se encuentra un username, navegar a la pantalla de juego
             if (username) {
                 Alert.alert('¡Éxito!', 'Inicio de sesión correcto');
-                navigation.replace('Game', { username }); // Navegar a la pantalla de juego con el username
+                navigation.replace('Game', { username });
             } else {
                 setError('No se encontró un nombre de usuario asociado.');
             }
@@ -67,7 +54,6 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
         } catch (err: any) {
             console.error('Error al iniciar sesión:', err);
     
-            // Lógica de manejo de errores
             switch (err.code) {
                 case 'auth/user-not-found':
                 case 'auth/wrong-password':
@@ -81,18 +67,16 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
             setLoading(false);
         }
     };
-    
 
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Ahorcado - Login</Text>
             
-          <Image
-                         source={require('../assets/icono.png')} 
-                         style={styles.image}
-                     />
+            <Image
+                source={require('../assets/icono.png')}
+                style={styles.image}
+            />
          
-          
             <TextInput
                 style={styles.input}
                 placeholder="Email"
@@ -112,10 +96,8 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
                 editable={!loading}
             />
 
-            {/* Mostrar error si existe */}
             {error ? <Text style={styles.error}>{error}</Text> : null}
 
-            {/* Botón de inicio de sesión */}
             <TouchableOpacity
                 style={[styles.button, loading && styles.buttonDisabled]}
                 onPress={handleLogin}
@@ -128,7 +110,6 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
                 )}
             </TouchableOpacity>
 
-            {/* Botón de creadores */}
             <TouchableOpacity 
                 onPress={() => navigation.navigate('Github')} 
                 disabled={loading} 
@@ -137,7 +118,6 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
                 <Text style={styles.creatorsButtonText}>Creadores</Text> 
             </TouchableOpacity> 
 
-            {/* Botón para ver ranking */}
             <TouchableOpacity
                 style={[styles.rankingButton]}
                 onPress={() => navigation.navigate('Leaderboard')}
@@ -145,7 +125,6 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
                 <Text style={styles.buttonText}>🏆 Ver Ranking</Text>
             </TouchableOpacity>
 
-            {/* Enlace para registrarse */}
             <TouchableOpacity onPress={() => navigation.navigate('Register')} disabled={loading}>
                 <Text style={styles.link}>¿No tienes cuenta? Regístrate</Text>
             </TouchableOpacity>
@@ -158,7 +137,7 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 20,
         justifyContent: 'center',
-        backgroundColor: '#E6F7FF', 
+        backgroundColor: '#E6F7FF',
     },
     creatorsButtonText: { 
         fontSize: 15, 
@@ -166,10 +145,16 @@ const styles = StyleSheet.create({
         fontWeight: 'bold', 
     }, 
     title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 20,
+        fontSize: 30,
         textAlign: 'center',
+        fontWeight: '700',
+        color: 'black', 
+        marginBottom: 20,
+        textTransform: 'uppercase',
+        letterSpacing: 3, 
+        textShadowColor: '#aaa', 
+        textShadowOffset: { width: 1, height: 1 },
+        textShadowRadius: 3, 
     },
     creatorsButton: { 
         backgroundColor: '#00BFFF',   
@@ -221,10 +206,17 @@ const styles = StyleSheet.create({
         marginTop: 15,
     },
     image: {
-        width: 200,   
-        height: 200,  
-        resizeMode: 'contain', 
-        marginBottom: 20, 
+        width: 150,  
+        height: 150, 
+        resizeMode: 'contain',
+        marginBottom: 30, 
         alignSelf: 'center',
+        borderWidth: 4,
+        borderColor: '#20272F',
+        borderRadius: 15, 
+        shadowColor: '#000',
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+        elevation: 5, 
     },
 });

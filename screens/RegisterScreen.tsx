@@ -39,13 +39,11 @@ export default function RegisterScreen() {
         setError('');
 
         try {
-            // Verificar si el usuario ya existe
             const userRef = ref(db, `users`);
             const snapshot = await get(userRef);
             let userExists = false;
 
             if (snapshot.exists()) {
-                // Verificar si el email o username ya están en uso
                 snapshot.forEach((childSnapshot) => {
                     const userData = childSnapshot.val();
                     if (userData.email === email || userData.username === username) {
@@ -60,7 +58,6 @@ export default function RegisterScreen() {
                 return;
             }
 
-            // Crear un ID único basado en el username
             const userId = username.toLowerCase().replace(/\s+/g, '_');
 
             const userData = {
@@ -76,7 +73,6 @@ export default function RegisterScreen() {
                 createdAt: new Date().toISOString(),
             };
 
-            // Guardar usando el username como ID
             await set(ref(db, `users/${userId}`), userData);
 
             Alert.alert(
@@ -101,7 +97,6 @@ export default function RegisterScreen() {
         <View style={styles.container}>
             <Text style={styles.title}>REGISTRO</Text>
             
-          
             <Image
                 source={require('../assets/icono.png')} 
                 style={styles.image}
@@ -147,31 +142,44 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 20,
         justifyContent: 'center',
-        backgroundColor: '#E6F7FF', // Fondo sugerido
+        backgroundColor: '#E6F7FF',
     },
     title: {
-        fontSize: 30,
+        fontSize: 35,
         textAlign: 'center',
-        fontWeight: 'bold',
-        color: 'black',
-        marginBottom: 15,
+        fontWeight: '700',
+        color: 'black', 
+        marginBottom: 20,
+        textTransform: 'uppercase',
+        letterSpacing: 3, 
+        textShadowColor: '#aaa', 
+        textShadowOffset: { width: 1, height: 1 },
+        textShadowRadius: 3, 
     },
     input: {
         width: '100%',
-        padding: 10,
-        marginVertical: 10,
+        padding: 15,
+        marginVertical: 12,
         borderWidth: 1,
         borderColor: 'black',
-        borderRadius: 5,
+        borderRadius: 10,
         backgroundColor: 'white',
+        shadowColor: '#000',
+        shadowOpacity: 0.1,
+        shadowRadius: 5,
+        elevation: 3,
     },
     button: {
         width: '100%',
         padding: 15,
         backgroundColor: '#1a73e8',
-        borderRadius: 5,
+        borderRadius: 10,
         alignItems: 'center',
         marginTop: 20,
+        shadowColor: '#000',
+        shadowOpacity: 0.1,
+        shadowRadius: 5,
+        elevation: 3,
     },
     buttonText: {
         color: '#fff',
@@ -180,12 +188,20 @@ const styles = StyleSheet.create({
     errorText: {
         color: 'red',
         marginVertical: 10,
+        textAlign: 'center',
     },
     image: {
-        width: 200,   
-        height: 200,  
-        resizeMode: 'contain', 
-        marginBottom: 20, 
+        width: 150,  
+        height: 150, 
+        resizeMode: 'contain',
+        marginBottom: 30, 
         alignSelf: 'center',
+        borderWidth: 4,
+        borderColor: '#20272F',
+        borderRadius: 15, 
+        shadowColor: '#000',
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+        elevation: 5, 
     },
 });
