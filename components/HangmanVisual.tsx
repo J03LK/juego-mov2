@@ -1,58 +1,135 @@
 // components/HangmanVisual.tsx
 import React from 'react';
-import { View, StyleSheet, Dimensions } from 'react-native';
-import Svg, { Line, Circle, G } from 'react-native-svg';
+import { View, StyleSheet } from 'react-native';
+import Svg, { Circle, Path, G } from 'react-native-svg';
 
 interface HangmanVisualProps {
     wrongAttempts: number;
 }
 
 const HANGMAN_PARTS = [
-    // Cabeza
-    ({ color }: { color: string }) => (
-        <Circle cx="100" cy="50" r="10" stroke={color} strokeWidth="4" fill="none" />
+    // Cabeza (cara feliz/triste según estado)
+    ({ color, isGameOver }: { color: string; isGameOver: boolean }) => (
+        <G>
+            <Circle cx="100" cy="50" r="10" stroke={color} strokeWidth="4" fill="white" />
+            {/* Ojos */}
+            <Circle cx="95" cy="47" r="1.5" fill={color} />
+            <Circle cx="105" cy="47" r="1.5" fill={color} />
+            {/* Boca (feliz o triste) */}
+            {isGameOver ? 
+                <Path
+                    d="M95 55 Q100 52 105 55"
+                    stroke={color}
+                    strokeWidth="1.5"
+                    fill="none"
+                /> :
+                <Path
+                    d="M95 53 Q100 56 105 53"
+                    stroke={color}
+                    strokeWidth="1.5"
+                    fill="none"
+                />
+            }
+        </G>
     ),
-    // Cuerpo
+    // Cuerpo (torso con forma)
     ({ color }: { color: string }) => (
-        <Line x1="100" y1="60" x2="100" y2="100" stroke={color} strokeWidth="4" />
+        <Path
+            d="M100 60 C100 75 95 90 100 100"
+            stroke={color}
+            strokeWidth="4"
+            fill="none"
+        />
     ),
     // Brazo izquierdo
     ({ color }: { color: string }) => (
-        <Line x1="100" y1="75" x2="75" y2="85" stroke={color} strokeWidth="4" />
+        <Path
+            d="M100 75 Q85 80 75 85"
+            stroke={color}
+            strokeWidth="4"
+            fill="none"
+        />
     ),
     // Brazo derecho
     ({ color }: { color: string }) => (
-        <Line x1="100" y1="75" x2="125" y2="85" stroke={color} strokeWidth="4" />
+        <Path
+            d="M100 75 Q115 80 125 85"
+            stroke={color}
+            strokeWidth="4"
+            fill="none"
+        />
     ),
     // Pierna izquierda
     ({ color }: { color: string }) => (
-        <Line x1="100" y1="100" x2="80" y2="130" stroke={color} strokeWidth="4" />
+        <Path
+            d="M100 100 Q90 115 80 130"
+            stroke={color}
+            strokeWidth="4"
+            fill="none"
+        />
     ),
     // Pierna derecha
     ({ color }: { color: string }) => (
-        <Line x1="100" y1="100" x2="120" y2="130" stroke={color} strokeWidth="4" />
+        <Path
+            d="M100 100 Q110 115 120 130"
+            stroke={color}
+            strokeWidth="4"
+            fill="none"
+        />
     ),
 ];
 
 export const HangmanVisual: React.FC<HangmanVisualProps> = ({ wrongAttempts }) => {
+    const isGameOver = wrongAttempts >= HANGMAN_PARTS.length;
+    const color = isGameOver ? 'red' : 'black';
+
     return (
         <View style={styles.container}>
             <Svg height="200" width="200" viewBox="0 0 200 200">
-                {/* Base */}
+                {/* Base mejorada */}
                 <G>
-                    {/* Poste horizontal base */}
-                    <Line x1="40" y1="160" x2="160" y2="160" stroke="black" strokeWidth="4" />
-                    {/* Poste vertical */}
-                    <Line x1="60" y1="20" x2="60" y2="160" stroke="black" strokeWidth="4" />
+                    {/* Base con perspectiva */}
+                    <Path
+                        d="M40 160 L160 160 L150 170 L50 170 Z"
+                        fill="#8B4513"
+                        stroke="black"
+                        strokeWidth="2"
+                    />
+                    {/* Poste vertical con sombra */}
+                    <Path
+                        d="M60 20 L60 160 L65 165 L65 25 Z"
+                        fill="#8B4513"
+                        stroke="black"
+                        strokeWidth="2"
+                    />
+                    {/* Soporte diagonal */}
+                    <Path
+                        d="M60 60 L80 160"
+                        stroke="#8B4513"
+                        strokeWidth="4"
+                    />
                     {/* Poste horizontal superior */}
-                    <Line x1="60" y1="20" x2="100" y2="20" stroke="black" strokeWidth="4" />
+                    <Path
+                        d="M60 20 L100 20 L100 25 L65 25 Z"
+                        fill="#8B4513"
+                        stroke="black"
+                        strokeWidth="2"
+                    />
                     {/* Cuerda */}
-                    <Line x1="100" y1="20" x2="100" y2="40" stroke="black" strokeWidth="4" />
+                    <Path
+                        d="M100 20 Q100 25 100 40"
+                        stroke="#866"
+                        strokeWidth="2"
+                    />
                 </G>
 
-                {/* Partes del cuerpo */}
+                {/* Partes del muñeco */}
                 {HANGMAN_PARTS.slice(0, wrongAttempts).map((Part, index) => (
-                    <Part key={index} color={wrongAttempts === 6 ? 'red' : 'black'} />
+                    <Part 
+                        key={index} 
+                        color={color} 
+                        isGameOver={isGameOver}
+                    />
                 ))}
             </Svg>
         </View>

@@ -138,6 +138,10 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         color: '#fff', // Texto blanco
         marginTop: 20, // Espaciado desde arriba
+        textShadowOffset: { width: 1, height: 1 },
+        textShadowRadius: 3,
+        fontFamily: 'Courier New',
+        textTransform: 'uppercase',
     },
     headerRow: {
         flexDirection: 'row',

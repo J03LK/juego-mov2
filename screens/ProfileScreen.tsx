@@ -249,57 +249,61 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 20,
-        backgroundColor: '#2b2b2b',  
+        backgroundColor: '#E6F7FF',  // Darker background for better contrast
     },
     title: {
-        fontSize: 28,
+        fontSize: 32,  // Slightly larger for better readability
         fontWeight: 'bold',
+        marginTop: 20,
         marginBottom: 20,
         textAlign: 'center',
-        color: '#FF6347', 
-        fontFamily: 'Courier New',  
+        color: 'black',  // Softer tomato color for a warmer tone
+        fontFamily: 'Courier New',
+        textTransform: 'uppercase',
+        textShadowOffset: { width: 1, height: 1 },
+        textShadowRadius: 3,
     },
     inputContainer: {
-        marginBottom: 15,
+        marginBottom: 20,  // Increased margin for better spacing
     },
     label: {
         fontSize: 18,
-        marginBottom: 5,
-        fontWeight: '500',
-        color: '#fff',
+        marginBottom: 8,  // Increased spacing for better readability
+        fontWeight: '600',  // Slightly bolder for emphasis
+        color: 'black',  // Lighter color for better contrast
     },
     input: {
         borderWidth: 1,
-        borderColor: '#ddd',
-        borderRadius: 8,
-        padding: 10,
+        borderColor: '#666',  // Darker border for subtler contrast
+        borderRadius: 10,  // More rounded corners for a modern look
+        padding: 12,  // Slightly increased padding for better touch targets
         fontSize: 16,
         color: '#fff',
-        backgroundColor: '#333', 
+          // Slightly lighter background for the input field
     },
     staticText: {
         fontSize: 16,
-        padding: 10,
-        color: '#bbb',
+        padding: 12,  // Increased padding for uniformity
+        color: 'black',  // Slightly lighter for better readability
     },
     button: {
-        backgroundColor: '#FF6347',  
+        backgroundColor: '#1a7',
         padding: 15,
-        borderRadius: 8,
+        borderRadius: 12,  // More rounded corners for a modern touch
         alignItems: 'center',
-        marginTop: 20,
+        marginTop: 25,  // Increased margin for better spacing
         borderWidth: 2,
         borderColor: '#fff',
     },
     buttonText: {
         color: '#fff',
-        fontSize: 16,
+        fontSize: 18,  // Slightly larger for better readability
         fontWeight: 'bold',
     },
     profileImage: {
-        width: 250,
-        height: 250,
-        borderRadius: 10,
+        width: 200,  // Reduced size for better adaptability on smaller screens
+        height: 200,
+        borderRadius: 100,  // Fully rounded for a circular profile image
         marginTop: 20,
     },
 });

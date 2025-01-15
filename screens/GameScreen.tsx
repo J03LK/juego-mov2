@@ -9,12 +9,21 @@ import {
     ImageSourcePropType,
     Dimensions,
 } from 'react-native';
+import { Audio } from 'expo-av';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { HangmanVisual } from '../components/HangmanVisual';
 import { db } from '../config/firebase.config';
-import { ref, get, update, child } from 'firebase/database';
+import { ref, get, update } from 'firebase/database';
 
 const { width } = Dimensions.get('window');
+
+interface GameSounds {
+    correct: Audio.Sound | null;
+    incorrect: Audio.Sound | null;
+    win: Audio.Sound | null;
+    lose: Audio.Sound | null;
+    levelUp: Audio.Sound | null;
+}
 
 interface WordHint {
     word: string;
@@ -45,7 +54,14 @@ const LEVELS: Levels = {
         words: [
             { word: 'SOL', hint: 'Brilla en el cielo durante el día' },
             { word: 'LUZ', hint: 'Nos permite ver en la oscuridad' },
-            { word: 'MAR', hint: 'Gran masa de agua salada' }
+            { word: 'MAR', hint: 'Gran masa de agua salada' },
+            { word: 'CIELO', hint: 'Está sobre nosotros y es azul durante el día' },
+            { word: 'ESTRELLA', hint: 'Brilla en la noche y está muy lejos' },
+            { word: 'NUBE', hint: 'Flota en el cielo y a veces trae lluvia' },
+            { word: 'VIENTO', hint: 'Corriente de aire' },
+            { word: 'FUEGO', hint: 'Produce calor y luz' },
+            { word: 'TIERRA', hint: 'Planeta donde vivimos' },
+            { word: 'LUNA', hint: 'Satélite natural de la Tierra' }
         ],
         background: require('../assets/level1.jpg'),
         usedWords: new Set(),
@@ -54,7 +70,14 @@ const LEVELS: Levels = {
         words: [
             { word: 'CASA', hint: 'Lugar donde vivimos' },
             { word: 'MESA', hint: 'Mueble para comer o trabajar' },
-            { word: 'SOPA', hint: 'Comida líquida caliente' }
+            { word: 'SOPA', hint: 'Comida líquida caliente' },
+            { word: 'SILLA', hint: 'Mueble para sentarse' },
+            { word: 'PUERTA', hint: 'Entrada a una habitación o edificio' },
+            { word: 'VENTANA', hint: 'Permite ver hacia afuera' },
+            { word: 'CAMA', hint: 'Donde dormimos' },
+            { word: 'LÁMPARA', hint: 'Fuente de luz artificial' },
+            { word: 'COCINA', hint: 'Lugar donde se prepara comida' },
+            { word: 'ESCALERA', hint: 'Se usa para subir o bajar entre niveles' }
         ],
         background: require('../assets/level2.jpg'),
         usedWords: new Set(),
@@ -63,7 +86,14 @@ const LEVELS: Levels = {
         words: [
             { word: 'PLATO', hint: 'Utensilio para servir comida' },
             { word: 'LIBRO', hint: 'Contiene historias y conocimiento' },
-            { word: 'PAPEL', hint: 'Material para escribir o dibujar' }
+            { word: 'PAPEL', hint: 'Material para escribir o dibujar' },
+            { word: 'CUADERNO', hint: 'Conjunto de hojas para escribir' },
+            { word: 'BOLÍGRAFO', hint: 'Se usa para escribir con tinta' },
+            { word: 'REGLA', hint: 'Se usa para medir distancias' },
+            { word: 'TIJERA', hint: 'Herramienta para cortar' },
+            { word: 'MOCHILA', hint: 'Bolsa para llevar objetos personales' },
+            { word: 'ESCRITORIO', hint: 'Mueble para trabajar o estudiar' },
+            { word: 'SILLÓN', hint: 'Asiento cómodo con respaldo y apoyabrazos' }
         ],
         background: require('../assets/level3.jpg'),
         usedWords: new Set(),
@@ -72,7 +102,14 @@ const LEVELS: Levels = {
         words: [
             { word: 'VENTANA', hint: 'Permite ver hacia afuera de un edificio' },
             { word: 'BOTELLA', hint: 'Recipiente para líquidos' },
-            { word: 'PESCADO', hint: 'Animal que vive en el agua' }
+            { word: 'PESCADO', hint: 'Animal que vive en el agua' },
+            { word: 'TELÉFONO', hint: 'Se usa para comunicarse a distancia' },
+            { word: 'LLAVE', hint: 'Se usa para abrir puertas' },
+            { word: 'CUCHARA', hint: 'Utensilio para comer líquidos' },
+            { word: 'ESPEJO', hint: 'Refleja la imagen de quien lo mira' },
+            { word: 'TOALLA', hint: 'Se usa para secarse' },
+            { word: 'ZAPATO', hint: 'Se usa para proteger los pies' },
+            { word: 'CÁMARA', hint: 'Dispositivo para tomar fotos' }
         ],
         background: require('../assets/level4.jpg'),
         usedWords: new Set(),
@@ -81,12 +118,20 @@ const LEVELS: Levels = {
         words: [
             { word: 'CALENDARIO', hint: 'Nos ayuda a organizar el tiempo' },
             { word: 'BIBLIOTECA', hint: 'Lugar lleno de libros' },
-            { word: 'COMPUTADORA', hint: 'Máquina para procesar información' }
+            { word: 'COMPUTADORA', hint: 'Máquina para procesar información' },
+            { word: 'AURICULAR', hint: 'Se usa para escuchar sin molestar a otros' },
+            { word: 'MOUSE', hint: 'Dispositivo para mover el cursor en la pantalla' },
+            { word: 'TECLADO', hint: 'Se usa para escribir en la computadora' },
+            { word: 'MONITOR', hint: 'Pantalla de computadora' },
+            { word: 'IMPRESORA', hint: 'Dispositivo para imprimir documentos' },
+            { word: 'SOFTWARE', hint: 'Programas que usa una computadora' },
+            { word: 'ALFOMBRA', hint: 'Se coloca en el suelo para decorar o aislar' }
         ],
         background: require('../assets/level5.jpg'),
         usedWords: new Set(),
     },
 };
+
 
 const LEVEL_TIME_LIMIT = 60;
 
@@ -102,7 +147,7 @@ export default function GameScreen({ route, navigation }: GameScreenProps) {
     const [wordsCompletedInLevel, setWordsCompletedInLevel] = useState<number>(0);
     const [timeRemaining, setTimeRemaining] = useState<number>(LEVEL_TIME_LIMIT);
     const [isGameActive, setIsGameActive] = useState<boolean>(true);
-    const [usedWordsInLevel, setUsedWordsInLevel] = useState<number[]>([]); 
+    const [usedWordsInLevel, setUsedWordsInLevel] = useState<number[]>([]);
 
     useEffect(() => {
         startNewGame();
@@ -125,24 +170,32 @@ export default function GameScreen({ route, navigation }: GameScreenProps) {
         return () => clearInterval(timer);
     }, [isGameActive, timeRemaining]);
 
+    const initialSounds: GameSounds = {
+        correct: null,
+        incorrect: null,
+        win: null,
+        lose: null,
+        levelUp: null,
+    };
+
     const updateUserScore = async (): Promise<boolean> => {
         try {
             const userRef = ref(db, `users/${userId}`);
             const snapshot = await get(userRef);
-    
+
             if (snapshot.exists()) {
                 const userData = snapshot.val();
                 const currentGameStats = userData.gameStats || {};
-    
+
                 const updatedGameStats = {
                     score: score,
                     gamesPlayed: (currentGameStats.gamesPlayed || 0) + 1,
                     highestScore: Math.max(currentGameStats.highestScore || 0, score),
                     lastGameDate: new Date().toISOString()
                 };
-    
+
                 await update(ref(db, `users/${userId}/gameStats`), updatedGameStats);
-    
+
                 return true;
             }
             return false;
@@ -152,9 +205,11 @@ export default function GameScreen({ route, navigation }: GameScreenProps) {
         }
     };
 
+    // Modifica tus funciones existentes para incluir los sonidos
     const handleEndGame = async (): Promise<void> => {
         setIsGameActive(false);
         await updateUserScore();
+        await playSound('lose');
         
         Alert.alert(
             'Juego terminado',
@@ -170,27 +225,37 @@ export default function GameScreen({ route, navigation }: GameScreenProps) {
 
     const startNewGame = (): void => {
         const levelData = LEVELS[currentLevel];
-        const availableIndices = Array.from(Array(levelData.words.length).keys())
-            .filter(index => !usedWordsInLevel.includes(index));
+
+        // Obtener índices de palabras disponibles que no han sido usadas
+        const availableIndices = Array.from(
+            Array(levelData.words.length).keys()
+        ).filter(index => !usedWordsInLevel.includes(index));
 
         let wordIndex: number;
-        
+
+        // Verificar si hay palabras disponibles sin usar
         if (availableIndices.length === 0) {
+            // Si todas las palabras han sido usadas, reiniciar la lista de palabras usadas
             setUsedWordsInLevel([]);
+            // Elegir cualquier palabra al azar
             wordIndex = Math.floor(Math.random() * levelData.words.length);
         } else {
+            // Elegir una palabra de los índices disponibles
             wordIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
+            // Marcar la palabra como usada
             setUsedWordsInLevel(prev => [...prev, wordIndex]);
         }
 
+        // Seleccionar la palabra y actualizar el estado
         const selectedWord = levelData.words[wordIndex];
         setWord(selectedWord.word);
-        setCurrentHint(selectedWord.hint); // Asegura que la pista se actualice
+        setCurrentHint(selectedWord.hint);
         setGuessedLetters(new Set());
         setWrongAttempts(0);
         setTimeRemaining(LEVEL_TIME_LIMIT);
         setIsGameActive(true);
     };
+
 
     const handleTimeUp = (): void => {
         handleEndGame();
@@ -219,25 +284,28 @@ export default function GameScreen({ route, navigation }: GameScreenProps) {
 
     const guessLetter = (letter: string): void => {
         if (!isGameActive || guessedLetters.has(letter)) return;
-
+    
         const newGuessedLetters = new Set(guessedLetters);
         newGuessedLetters.add(letter);
         setGuessedLetters(newGuessedLetters);
-
+    
         if (!word.includes(letter)) {
+            playSound('incorrect');
             const newWrongAttempts = wrongAttempts + 1;
             setWrongAttempts(newWrongAttempts);
-            
+    
             if (newWrongAttempts >= 6) {
                 handleEndGame();
                 return;
             }
         } else {
+            playSound('correct');
             const isWinner = [...word].every((char) => newGuessedLetters.has(char));
             if (isWinner) {
-                const pointsForWord = 100 * currentLevel;
+                playSound('win');
+                const pointsForWord = 100 * currentLevel; // Define pointsForWord aquí
                 setScore((prev) => prev + pointsForWord);
-                
+    
                 setWordsCompletedInLevel((prev) => {
                     const newWordsCompleted = prev + 1;
                     if (newWordsCompleted >= 3) {
@@ -245,7 +313,7 @@ export default function GameScreen({ route, navigation }: GameScreenProps) {
                     }
                     return newWordsCompleted;
                 });
-
+    
                 Alert.alert(
                     '¡Palabra Completada!',
                     `¡Conseguiste ${pointsForWord} puntos!`,
@@ -284,6 +352,68 @@ export default function GameScreen({ route, navigation }: GameScreenProps) {
             ]
         );
     };
+    
+    const [sounds, setSounds] = useState<GameSounds>({
+        correct: null,
+        incorrect: null,
+        win: null,
+        lose: null,
+        levelUp: null,
+    });
+
+    // Cargar los sonidos al iniciar
+    useEffect(() => {
+        async function loadSounds() {
+            try {
+                const correctSound = new Audio.Sound();
+                const incorrectSound = new Audio.Sound();
+                const winSound = new Audio.Sound();
+                const loseSound = new Audio.Sound();
+                const levelUpSound = new Audio.Sound();
+
+                await correctSound.loadAsync(require('../assets/sounds/correct.mp3'));
+                await incorrectSound.loadAsync(require('../assets/sounds/incorrect.mp3'));
+                await winSound.loadAsync(require('../assets/sounds/win.mp3'));
+                await loseSound.loadAsync(require('../assets/sounds/lose.mp3'));
+                await levelUpSound.loadAsync(require('../assets/sounds/level-up.mp3'));
+
+                setSounds({
+                    correct: correctSound,
+                    incorrect: incorrectSound,
+                    win: winSound,
+                    lose: loseSound,
+                    levelUp: levelUpSound,
+                });
+            } catch (error) {
+                console.error('Error cargando sonidos:', error);
+            }
+        }
+
+        loadSounds();
+
+        // Cleanup function
+        return () => {
+            Object.values(sounds).forEach(async (sound) => {
+                if (sound) {
+                    await sound.unloadAsync();
+                }
+            });
+        };
+    }, []);
+
+    // Función para reproducir sonidos
+    const playSound = async (soundType: keyof GameSounds) => {
+        try {
+            const sound = sounds[soundType];
+            if (sound) {
+                await sound.setPositionAsync(0);
+                await sound.playAsync();
+            }
+        } catch (error) {
+            console.error('Error reproduciendo sonido:', error);
+        }
+    };
+
 
     return (
         <ImageBackground

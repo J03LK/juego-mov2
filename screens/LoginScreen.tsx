@@ -182,6 +182,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.2,
         shadowRadius: 3.5,
         elevation: 5,
+        borderRadius: 10,
     },
     input: {
         borderWidth: 1,
@@ -194,14 +195,18 @@ const styles = StyleSheet.create({
     button: {
         backgroundColor: '#007AFF',
         padding: 15,
-        borderRadius: 5,
+        borderRadius: 10,
         marginTop: 10,
     },
     rankingButton: {
-        backgroundColor: '#4CAF50',
+        backgroundColor: '#1a7',
         padding: 15,
-        borderRadius: 5,
+        borderRadius: 10,
         marginTop: 10,
+        shadowColor: '#000',
+        shadowOpacity: 0.1,
+        shadowRadius: 5,
+        elevation: 3,
     },
     buttonDisabled: {
         backgroundColor: '#ccc',
