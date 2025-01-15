@@ -8,14 +8,13 @@ import {
     Alert,
     ActivityIndicator,
     Dimensions,
-    Image
+    Image,
+    ImageBackground
 } from 'react-native';
-import { ref, set, get } from 'firebase/database';
+import { ref, set } from 'firebase/database';
 import { auth, db } from '../config/firebase.config';
 import { useNavigation } from '@react-navigation/native';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-
-
 
 const { width } = Dimensions.get('window');
 
@@ -32,27 +31,24 @@ export default function RegisterScreen() {
             setError('Por favor completa todos los campos');
             return;
         }
-    
+
         if (password.length < 6) {
             setError('La contraseña debe tener al menos 6 caracteres');
             return;
         }
-    
+
         setLoading(true);
         setError('');
-    
+
         try {
-          
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
-    
-            // Crear un ID único basado en el username
+
             const userId = username.toLowerCase().replace(/\s+/g, '_');
-    
             const userData = {
                 username,
-                email: user.email, // Asegurarse de usar el email proporcionado por Firebase
-                password, // Aunque no se recomienda guardar contraseñas en texto plano
+                email: user.email,
+                password,
                 gameStats: {
                     score: 0,
                     gamesPlayed: 0,
@@ -61,10 +57,9 @@ export default function RegisterScreen() {
                 },
                 createdAt: new Date().toISOString(),
             };
-    
-         
+
             await set(ref(db, `users/${userId}`), userData);
-    
+
             Alert.alert(
                 '¡Éxito!',
                 'Registro completado correctamente. ¡Puedes comenzar a jugar!',
@@ -77,8 +72,7 @@ export default function RegisterScreen() {
             );
         } catch (err: any) {
             console.error(err);
-    
-          
+
             switch (err.code) {
                 case 'auth/email-already-in-use':
                     setError('El email ya está en uso');
@@ -99,114 +93,131 @@ export default function RegisterScreen() {
     };
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>REGISTRO</Text>
-            
-            <Image
-                source={require('../assets/icono.png')} 
-                style={styles.image}
-            />
+        <ImageBackground
+            source={require('../assets/registro.png')}
+            style={styles.img}
+        >
+            <View style={styles.overlay}>
+                <View style={styles.container}>
+                    <Text style={styles.title}>Registro</Text>
 
-            <TextInput
-                style={styles.input}
-                placeholder="Nombre de usuario"
-                value={username}
-                onChangeText={setUsername}
-                autoCapitalize="none"
-            />
-            <TextInput
-                style={styles.input}
-                placeholder="Email"
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-            />
-            <TextInput
-                style={styles.input}
-                placeholder="Contraseña"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                autoCapitalize="none"
-            />
-            {error ? <Text style={styles.errorText}>{error}</Text> : null}
-            <TouchableOpacity onPress={handleRegister} style={styles.button}>
-                {loading ? (
-                    <ActivityIndicator color="#fff" />
-                ) : (
-                    <Text style={styles.buttonText}>Registrarse</Text>
-                )}
-            </TouchableOpacity>
-        </View>
+                    <Image
+                        source={require('../assets/icono.png')}
+                        style={styles.image}
+                    />
+
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Nombre de usuario"
+                        value={username}
+                        onChangeText={setUsername}
+                        autoCapitalize="none"
+                        placeholderTextColor="rgba(0, 0, 0, 0.7)"
+                    />
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Email"
+                        value={email}
+                        onChangeText={setEmail}
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                        placeholderTextColor="rgba(0, 0, 0, 0.7)"
+                    />
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Contraseña"
+                        value={password}
+                        onChangeText={setPassword}
+                        secureTextEntry
+                        autoCapitalize="none"
+                        placeholderTextColor="rgba(0, 0, 0, 0.7)"
+                    />
+                    {error ? (
+                        <Text style={styles.errorText}>{error}</Text>
+                    ) : null}
+                    <TouchableOpacity onPress={handleRegister} style={styles.button}>
+                        {loading ? (
+                            <ActivityIndicator color="#fff" />
+                        ) : (
+                            <Text style={styles.buttonText}>Registrarse</Text>
+                        )}
+                    </TouchableOpacity>
+                </View>
+            </View>
+        </ImageBackground>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
+    img: {
         flex: 1,
-        padding: 20,
+        resizeMode: 'cover',
+    },
+    overlay: {
+        flex: 1,
         justifyContent: 'center',
-        backgroundColor: '#E6F7FF',
+        alignItems: 'center',
+    },
+    container: {
+        width: '90%',
+        backgroundColor: 'rgba(255, 255, 255, 0.8)', 
+        padding: 20,
+        borderRadius: 15,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+        elevation: 8,
     },
     title: {
-        fontSize: 35,
-        textAlign: 'center',
-        fontWeight: '700',
-        color: 'black', 
+        fontSize: 30,
+        fontWeight: 'bold',
+        color: '#333',
+        marginBottom: 15,
+        textShadowColor: 'rgba(0, 0, 0, 0.6)',
+        textShadowOffset: { width: 2, height: 2 },
+        textShadowRadius: 5,
+    },
+    image: {
+        width: 100,
+        height: 100,
+        resizeMode: 'contain',
         marginBottom: 20,
-        textTransform: 'uppercase',
-        letterSpacing: 3, 
-        textShadowColor: '#aaa', 
-        textShadowOffset: { width: 1, height: 1 },
-        textShadowRadius: 3, 
     },
     input: {
         width: '100%',
-        padding: 15,
-        marginVertical: 12,
+        height: 50,
+        borderColor: '#ccc',
         borderWidth: 1,
-        borderColor: 'black',
         borderRadius: 10,
-        backgroundColor: 'white',
-        shadowColor: '#000',
-        shadowOpacity: 0.1,
-        shadowRadius: 5,
-        elevation: 3,
+        marginBottom: 20,
+        paddingHorizontal: 15,
+        fontSize: 16,
+        color: '#000',
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
     },
     button: {
         width: '100%',
         padding: 15,
-        backgroundColor: '#1a73e8',
+        backgroundColor: '#4CAF50',
         borderRadius: 10,
         alignItems: 'center',
-        marginTop: 20,
+        marginTop: 10,
         shadowColor: '#000',
-        shadowOpacity: 0.1,
+        shadowOpacity: 0.2,
         shadowRadius: 5,
-        elevation: 3,
+        elevation: 5,
     },
     buttonText: {
         color: '#fff',
         fontWeight: 'bold',
+        fontSize: 16,
+        textTransform: 'uppercase',
     },
     errorText: {
-        color: 'red',
+        color: '#FF6B6B',
+        fontSize: 14,
         marginVertical: 10,
         textAlign: 'center',
-    },
-    image: {
-        width: 150,  
-        height: 150, 
-        resizeMode: 'contain',
-        marginBottom: 30, 
-        alignSelf: 'center',
-        borderWidth: 4,
-        borderColor: '#20272F',
-        borderRadius: 15, 
-        shadowColor: '#000',
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-        elevation: 5, 
     },
 });

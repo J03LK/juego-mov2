@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert, Image } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert, Image, ImageBackground } from 'react-native';
 import { getDatabase, ref, get, update } from 'firebase/database';
 import { getAuth, updateEmail, updatePassword } from 'firebase/auth';
 import * as ImagePicker from 'expo-image-picker';
@@ -165,147 +165,199 @@ const ProfileScreen: React.FC = () => {
     };
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Mi Perfil</Text>
+        <ImageBackground
+            source={require('../assets/perfil.png')} // Imagen de fondo
+            style={styles.img}
+        >
+            <View style={styles.overlay}>
+                <View style={styles.container}>
+                    <Text style={styles.title}>Mi Perfil</Text>
 
-            <View style={styles.inputContainer}>
-                <Text style={styles.label}>Username:</Text>
-                <Text style={styles.staticText}>{userData.username}</Text>
+                    {/* Nombre de usuario (No editable) */}
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Username:</Text>
+                        <Text style={styles.staticText}>{userData.username}</Text>
+                    </View>
+
+                    {/* Email */}
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Email:</Text>
+                        <TextInput
+                            style={styles.input}
+                            value={userData.email}
+                            onChangeText={(text) =>
+                                setUserData({ ...userData, email: text })
+                            }
+                            editable={isEditing}
+                            placeholder="Correo electrónico"
+                            placeholderTextColor="rgba(255, 255, 255, 0.7)"
+                        />
+                    </View>
+
+                    {/* Contraseña */}
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Contraseña:</Text>
+                        <TextInput
+                            style={styles.input}
+                            value={userData.password}
+                            onChangeText={(text) =>
+                                setUserData({ ...userData, password: text })
+                            }
+                            secureTextEntry
+                            editable={isEditing}
+                            placeholder="Nueva contraseña"
+                            placeholderTextColor="rgba(255, 255, 255, 0.7)"
+                        />
+                    </View>
+
+                    {/* Edad */}
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Edad:</Text>
+                        <TextInput
+                            style={styles.input}
+                            value={userData.age}
+                            onChangeText={(text) =>
+                                setUserData({ ...userData, age: text })
+                            }
+                            keyboardType="numeric"
+                            editable={isEditing}
+                            placeholder="Edad"
+                            placeholderTextColor="rgba(255, 255, 255, 0.7)"
+                        />
+                    </View>
+
+                    {/* Botón para editar o guardar */}
+                    {!isEditing ? (
+                        <TouchableOpacity
+                            style={styles.button}
+                            onPress={() => setIsEditing(true)}
+                        >
+                            <Text style={styles.buttonText}>Editar Perfil</Text>
+                        </TouchableOpacity>
+                    ) : (
+                        <TouchableOpacity
+                            style={styles.button}
+                            onPress={handleSave}
+                        >
+                            <Text style={styles.buttonText}>Guardar Cambios</Text>
+                        </TouchableOpacity>
+                    )}
+
+                    {/* Botón para seleccionar o tomar una foto */}
+                    <TouchableOpacity
+                        style={styles.button}
+                        onPress={() => {
+                            Alert.alert('Selecciona una opción', '', [
+                                { text: 'Tomar una foto', onPress: pickImage },
+                                { text: 'Seleccionar de la galería', onPress: pickImageC },
+                                { text: 'Cancelar', style: 'cancel' },
+                            ]);
+                        }}
+                    >
+                        <Text style={styles.buttonText}>
+                            Tomar o Seleccionar Foto
+                        </Text>
+                    </TouchableOpacity>
+
+                    {/* Mostrar la foto de perfil si se ha seleccionado */}
+                    {image && (
+                        <Image
+                            source={{ uri: image }}
+                            style={styles.profileImage}
+                        />
+                    )}
+                </View>
             </View>
-
-            <View style={styles.inputContainer}>
-                <Text style={styles.label}>Email:</Text>
-                <TextInput
-                    style={styles.input}
-                    value={userData.email}
-                    onChangeText={(text) => setUserData({ ...userData, email: text })}
-                    editable={isEditing}
-                />
-            </View>
-
-            <View style={styles.inputContainer}>
-                <Text style={styles.label}>Contraseña:</Text>
-                <TextInput
-                    style={styles.input}
-                    value={userData.password}
-                    onChangeText={(text) => setUserData({ ...userData, password: text })}
-                    secureTextEntry
-                    editable={isEditing}
-                    placeholder="Nueva contraseña"
-                />
-            </View>
-
-            <View style={styles.inputContainer}>
-                <Text style={styles.label}>Edad:</Text>
-                <TextInput
-                    style={styles.input}
-                    value={userData.age}
-                    onChangeText={(text) => setUserData({ ...userData, age: text })}
-                    keyboardType="numeric"
-                    editable={isEditing}
-                />
-            </View>
-
-            <TouchableOpacity
-                style={styles.button}
-                onPress={() => {
-                    Alert.alert('Selecciona una opción', '', [
-                        { text: 'Tomar una foto', onPress: pickImage },
-                        { text: 'Seleccionar de la galería', onPress: pickImageC },
-                        { text: 'Cancelar', style: 'cancel' },
-                    ]);
-                }}
-            >
-                <Text style={styles.buttonText}>Tomar o Seleccionar Foto</Text>
-            </TouchableOpacity>
-
-            {image && (
-                <Image
-                    source={{ uri: image }}
-                    style={styles.profileImage}
-                />
-            )}
-
-            {!isEditing ? (
-                <TouchableOpacity
-                    style={styles.button}
-                    onPress={() => setIsEditing(true)}
-                >
-                    <Text style={styles.buttonText}>Editar Perfil</Text>
-                </TouchableOpacity>
-            ) : (
-                <TouchableOpacity
-                    style={styles.button}
-                    onPress={handleSave}
-                >
-                    <Text style={styles.buttonText}>Guardar Cambios</Text>
-                </TouchableOpacity>
-            )}
-        </View>
+        </ImageBackground>
     );
 };
 
 const styles = StyleSheet.create({
-    container: {
+    img: {
         flex: 1,
+        resizeMode: 'cover',
+    },
+    overlay: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    container: {
+        width: '90%',  // Asegurando que el contenedor no esté limitado
+        backgroundColor: 'rgba(255, 255, 255, 0.8)',
         padding: 20,
-        backgroundColor: '#E6F7FF',  // Darker background for better contrast
+        borderRadius: 15,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+        elevation: 8,
     },
     title: {
-        fontSize: 32,  // Slightly larger for better readability
+        fontSize: 30,
         fontWeight: 'bold',
-        marginTop: 20,
-        marginBottom: 20,
-        textAlign: 'center',
-        color: 'black',  // Softer tomato color for a warmer tone
-        fontFamily: 'Courier New',
-        textTransform: 'uppercase',
-        textShadowOffset: { width: 1, height: 1 },
-        textShadowRadius: 3,
+        color: '#333',
+        marginBottom: 15,
+        textShadowColor: 'rgba(0, 0, 0, 0.6)',
+        textShadowOffset: { width: 2, height: 2 },
+        textShadowRadius: 5,
     },
     inputContainer: {
-        marginBottom: 20,  // Increased margin for better spacing
+        marginBottom: 15,
+        width: '100%',  // Asegurando que el contenedor del input ocupe todo el ancho
     },
     label: {
-        fontSize: 18,
-        marginBottom: 8,  // Increased spacing for better readability
-        fontWeight: '600',  // Slightly bolder for emphasis
-        color: 'black',  // Lighter color for better contrast
+        fontSize: 16,
+        fontWeight: '600',
+        color: 'black',
+        marginBottom: 5,
     },
     input: {
+        width: '100%',  // El input ocupa el 100% del ancho del contenedor
+        height: 50,
+        borderColor: '#ccc',
         borderWidth: 1,
-        borderColor: '#666',  // Darker border for subtler contrast
-        borderRadius: 10,  // More rounded corners for a modern look
-        padding: 12,  // Slightly increased padding for better touch targets
+        borderRadius: 10,
+        marginBottom: 20,
+        paddingHorizontal: 15,
         fontSize: 16,
-        color: '#fff',
-          // Slightly lighter background for the input field
+        color: '#000',
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
     },
     staticText: {
         fontSize: 16,
-        padding: 12,  // Increased padding for uniformity
-        color: 'black',  // Slightly lighter for better readability
+        color: 'black',
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+        padding: 10,
+        borderRadius: 10,
     },
     button: {
-        backgroundColor: '#1a7',
+        width: '100%',  // También aseguramos que los botones ocupen todo el ancho
         padding: 15,
-        borderRadius: 12,  // More rounded corners for a modern touch
+        backgroundColor: '#4CAF50',
+        borderRadius: 10,
         alignItems: 'center',
-        marginTop: 25,  // Increased margin for better spacing
-        borderWidth: 2,
-        borderColor: '#fff',
+        marginTop: 10,
+        shadowColor: '#000',
+        shadowOpacity: 0.2,
+        shadowRadius: 5,
+        elevation: 5,
     },
     buttonText: {
         color: '#fff',
-        fontSize: 18,  // Slightly larger for better readability
         fontWeight: 'bold',
+        fontSize: 16,
+        textTransform: 'uppercase',
     },
     profileImage: {
-        width: 200,  // Reduced size for better adaptability on smaller screens
+        width: 200,
         height: 200,
-        borderRadius: 100,  // Fully rounded for a circular profile image
+        borderRadius: 100,
         marginTop: 20,
+        borderWidth: 4,
+        borderColor: 'rgba(255, 255, 255, 0.7)',
     },
 });
+
 
 export default ProfileScreen;

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, Text, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { View, TextInput, TouchableOpacity, Text, StyleSheet, Alert, ActivityIndicator, ImageBackground } from 'react-native';
 import { ref, get } from 'firebase/database';
 import { auth, db } from '../config/firebase.config';
 import { Image } from 'react-native';
@@ -42,11 +42,11 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
 
             if (snapshot.exists()) {
                 const users = snapshot.val();
-                // Guardamos userKey y username en el mismo bloque donde users está definido
                 const userKey = Object.keys(users).find(key => users[key].email === email);
                 const userFromDb = Object.values(users).find(
-                    (u: User) => u.email === email
-                ) as User | undefined;
+                    (u): u is User => (u as User).email === email
+                );
+            
 
                 if (userFromDb && userFromDb.username) {
                     username = userFromDb.username;
@@ -81,162 +81,189 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
     };
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Ahorcado - Login</Text>
-
-            <Image
-                source={require('../assets/icono.png')}
-                style={styles.image}
-            />
-
-            <TextInput
-                style={styles.input}
-                placeholder="Email"
-                value={email}
-                onChangeText={setEmail}
-                autoCapitalize="none"
-                keyboardType="email-address"
-                editable={!loading}
-            />
-
-            <TextInput
-                style={styles.input}
-                placeholder="Contraseña"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                editable={!loading}
-            />
-
-            {error ? <Text style={styles.error}>{error}</Text> : null}
-
-            <TouchableOpacity
-                style={[styles.button, loading && styles.buttonDisabled]}
-                onPress={handleLogin}
-                disabled={loading}
-            >
-                {loading ? (
-                    <ActivityIndicator color="white" />
-                ) : (
-                    <Text style={styles.buttonText}>Iniciar Sesión</Text>
-                )}
-            </TouchableOpacity>
-
-            <TouchableOpacity
-                onPress={() => navigation.navigate('Github')}
-                disabled={loading}
-                style={styles.creatorsButton}
-            >
-                <Text style={styles.creatorsButtonText}>Creadores</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-                style={[styles.rankingButton]}
-                onPress={() => navigation.navigate('Leaderboard')}
-            >
-                <Text style={styles.buttonText}>🏆 Ver Ranking</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={() => navigation.navigate('Register')} disabled={loading}>
-                <Text style={styles.link}>¿No tienes cuenta? Regístrate</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate('Restablecer')} disabled={loading}>
-                <Text style={styles.link}>Olvidaste la contraseña, da click aquí</Text>
-            </TouchableOpacity>
-        </View>
+        <ImageBackground source={require('../assets/login.png')} style={styles.img}>
+            <View style={styles.overlay}>
+                <View style={styles.container}>
+                    <Text style={styles.title}>Ahorcado - Login</Text>
+    
+                    <Image
+                        source={require('../assets/icono.png')}
+                        style={styles.image}
+                    />
+    
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Email"
+                        value={email}
+                        onChangeText={setEmail}
+                        autoCapitalize="none"
+                        keyboardType="email-address"
+                        editable={!loading}
+                        placeholderTextColor="rgba(0, 0, 0, 0.7)"
+                    />
+    
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Contraseña"
+                        value={password}
+                        onChangeText={setPassword}
+                        secureTextEntry
+                        editable={!loading}
+                        placeholderTextColor="rgba(0, 0, 0, 0.7)"
+                    />
+    
+                    {error ? <Text style={styles.error}>{error}</Text> : null}
+    
+                    <TouchableOpacity
+                        style={[styles.button, loading && styles.buttonDisabled]}
+                        onPress={handleLogin}
+                        disabled={loading}
+                    >
+                        {loading ? (
+                            <ActivityIndicator color="white" />
+                        ) : (
+                            <Text style={styles.buttonText}>Iniciar Sesión</Text>
+                        )}
+                    </TouchableOpacity>
+    
+                    <TouchableOpacity
+                        onPress={() => navigation.navigate('Github')}
+                        disabled={loading}
+                        style={styles.creatorsButton}
+                    >
+                        <Text style={styles.creatorsButtonText}>Creadores</Text>
+                    </TouchableOpacity>
+    
+                    <TouchableOpacity
+                        style={styles.rankingButton}
+                        onPress={() => navigation.navigate('Leaderboard')}
+                    >
+                        <Text style={styles.buttonText}>🏆 Ver Ranking</Text>
+                    </TouchableOpacity>
+    
+                    <TouchableOpacity onPress={() => navigation.navigate('Register')} disabled={loading}>
+                        <Text style={styles.link}>¿No tienes cuenta? Regístrate</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => navigation.navigate('Restablecer')} disabled={loading}>
+                        <Text style={styles.link}>Olvidaste la contraseña, da click aquí</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        </ImageBackground>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
+    img: {
         flex: 1,
-        padding: 20,
-        justifyContent: 'center',
-        backgroundColor: '#E6F7FF',
+        resizeMode: 'cover',
     },
-    creatorsButtonText: {
-        fontSize: 15,
-        color: 'white',
-        fontWeight: 'bold',
+    overlay: {
+        flex: 1,
+        //backgroundColor: 'rgba(255, 255, 255, 0.6)', // Fondo translúcido más claro
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    container: {
+        width: '90%',
+        backgroundColor: 'rgba(255, 255, 255, 0.8)', // Fondo translúcido para el contenido
+        padding: 20,
+        borderRadius: 15,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+        elevation: 8,
     },
     title: {
         fontSize: 30,
-        textAlign: 'center',
-        fontWeight: '700',
-        color: 'black',
-        marginBottom: 20,
-        textTransform: 'uppercase',
-        letterSpacing: 3,
-        textShadowColor: '#aaa',
-        textShadowOffset: { width: 1, height: 1 },
-        textShadowRadius: 3,
+        fontWeight: 'bold',
+        color: '#333',
+        marginBottom: 15,
+        textShadowColor: 'rgba(0, 0, 0, 0.6)',
+        textShadowOffset: { width: 2, height: 2 },
+        textShadowRadius: 5,
     },
-    creatorsButton: {
-        backgroundColor: '#00BFFF',
-        paddingVertical: 15,
-        paddingHorizontal: 25,
-        marginTop: 20,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 3.5,
-        elevation: 5,
-        borderRadius: 10,
+    image: {
+        width: 120,
+        height: 120,
+        resizeMode: 'contain',
+        marginBottom: 30,
+        borderRadius: 15,
+        borderWidth: 3,
+        borderColor: '#ccc',
     },
     input: {
+        width: '100%',
+        height: 50,
+        borderColor: '#ccc',
         borderWidth: 1,
-        borderColor: 'black',
-        padding: 10,
-        marginBottom: 10,
-        borderRadius: 5,
-        backgroundColor: 'white',
+        borderRadius: 10,
+        marginBottom: 15,
+        paddingHorizontal: 15,
+        fontSize: 16,
+        color: '#000',
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
     },
     button: {
+        width: '100%',
+        padding: 15,
         backgroundColor: '#007AFF',
-        padding: 15,
         borderRadius: 10,
-        marginTop: 10,
-    },
-    rankingButton: {
-        backgroundColor: '#1a7',
-        padding: 15,
-        borderRadius: 10,
+        alignItems: 'center',
         marginTop: 10,
         shadowColor: '#000',
-        shadowOpacity: 0.1,
+        shadowOpacity: 0.2,
         shadowRadius: 5,
-        elevation: 3,
+        elevation: 5,
+    },
+    rankingButton: {
+        width: '100%',
+        padding: 15,
+        backgroundColor: '#4CAF50',
+        borderRadius: 10,
+        alignItems: 'center',
+        marginTop: 10,
+        shadowColor: '#000',
+        shadowOpacity: 0.2,
+        shadowRadius: 5,
+        elevation: 5,
     },
     buttonDisabled: {
         backgroundColor: '#ccc',
     },
     buttonText: {
-        color: 'white',
-        textAlign: 'center',
+        color: '#fff',
+        fontWeight: 'bold',
+        fontSize: 16,
+        textTransform: 'uppercase',
+    },
+    creatorsButton: {
+        width: '100%',
+        padding: 15,
+        backgroundColor: '#00BFFF',
+        borderRadius: 10,
+        alignItems: 'center',
+        marginTop: 10,
+        shadowColor: '#000',
+        shadowOpacity: 0.2,
+        shadowRadius: 5,
+        elevation: 5,
+    },
+    creatorsButtonText: {
+        fontSize: 15,
+        color: '#fff',
         fontWeight: 'bold',
     },
     error: {
-        color: 'red',
+        color: '#FF6B6B',
+        fontSize: 14,
         marginBottom: 10,
+        textAlign: 'center',
     },
     link: {
         color: '#007AFF',
         textAlign: 'center',
         marginTop: 15,
-    },
-    image: {
-        width: 150,
-        height: 150,
-        resizeMode: 'contain',
-        marginBottom: 30,
-        alignSelf: 'center',
-        borderWidth: 4,
-        borderColor: '#20272F',
-        borderRadius: 15,
-        shadowColor: '#000',
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-        elevation: 5,
     },
 });
