@@ -38,39 +38,38 @@ const ProfileScreen: React.FC = () => {
             Alert.alert('Error', 'Primero selecciona una imagen');
             return;
         }
-    
-        // Asegurarse de que tenemos un token válido
+
         if (!token) {
             Alert.alert('Error', 'Token de acceso no disponible');
             return;
         }
-    
+
         const ACCESS_TOKEN = token;
         setIsLoading(true);
-    
+
         try {
             // Convertir la imagen a Base64
             const fileData = await FileSystem.readAsStringAsync(image, {
                 encoding: FileSystem.EncodingType.Base64,
             });
-    
+
             const fileBuffer = Buffer.from(fileData, 'base64');
             const nextImageCount = imageCount + 1;
-    
+
             // Configuración para la carga de archivos
             const dropboxArg = {
                 path: `/avatars/imagen${nextImageCount}.jpg`,
                 mode: 'overwrite',
                 strict_conflict: false
             };
-    
+
             // Headers específicos para la carga de archivos
             const headers = {
                 'Authorization': `Bearer ${ACCESS_TOKEN}`,
                 'Dropbox-API-Arg': JSON.stringify(dropboxArg),
                 'Content-Type': 'application/octet-stream'
             };
-    
+
             try {
                 // Subir el archivo
                 const result = await axios({
@@ -81,9 +80,9 @@ const ProfileScreen: React.FC = () => {
                     maxContentLength: Infinity,
                     maxBodyLength: Infinity
                 });
-    
+
                 if (result.data && result.data.path_display) {
-                    // Crear el enlace compartido
+                 
                     const shareData = {
                         path: result.data.path_display,
                         settings: {
@@ -92,27 +91,28 @@ const ProfileScreen: React.FC = () => {
                             access: { '.tag': 'viewer' }
                         }
                     };
-    
+
                     const shareHeaders = {
                         'Authorization': `Bearer ${ACCESS_TOKEN}`,
                         'Content-Type': 'application/json'
                     };
-    
+
                     try {
                         const sharedLinkResult = await axios.post(
                             'https://api.dropboxapi.com/2/sharing/create_shared_link_with_settings',
                             shareData,
                             { headers: shareHeaders }
                         );
-    
+
                         if (sharedLinkResult.data && sharedLinkResult.data.url) {
+                         
                             const downloadUrl = sharedLinkResult.data.url.replace('dl=0', 'raw=1');
                             setImageUrl(downloadUrl);
                             setImageCount(nextImageCount);
                             Alert.alert('Éxito', 'Imagen subida correctamente a Dropbox');
                         }
                     } catch (shareError: any) {
-                        // Si el enlace ya existe, intentar obtener el enlace existente
+                    
                         if (shareError.response?.status === 409) {
                             try {
                                 const listLinksResult = await axios.post(
@@ -120,8 +120,9 @@ const ProfileScreen: React.FC = () => {
                                     { path: result.data.path_display },
                                     { headers: shareHeaders }
                                 );
-    
+
                                 if (listLinksResult.data.links && listLinksResult.data.links.length > 0) {
+                                    
                                     const existingUrl = listLinksResult.data.links[0].url.replace('dl=0', 'raw=1');
                                     setImageUrl(existingUrl);
                                     setImageCount(nextImageCount);
@@ -137,7 +138,7 @@ const ProfileScreen: React.FC = () => {
                 }
             } catch (error: any) {
                 let errorMessage = 'Error al subir la imagen';
-                
+
                 if (error.response) {
                     switch (error.response.status) {
                         case 401:
@@ -153,7 +154,7 @@ const ProfileScreen: React.FC = () => {
                             errorMessage = `Error ${error.response.status}: ${error.response.data?.error_summary || 'Error desconocido'}`;
                     }
                 }
-                
+
                 Alert.alert('Error', errorMessage);
                 console.error('Error detallado:', error);
             }
@@ -264,45 +265,44 @@ const ProfileScreen: React.FC = () => {
     const pickImage = async () => {
         const cameraPermission = await ImagePicker.requestCameraPermissionsAsync();
         const mediaLibraryPermission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    
+
         if (cameraPermission.status !== 'granted' || mediaLibraryPermission.status !== 'granted') {
             alert('Se necesitan permisos para usar la cámara o la galería.');
             return;
         }
-    
+
         let result = await ImagePicker.launchCameraAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
             aspect: [4, 3],
             quality: 1,
         });
-    
+
         if (!result.canceled) {
             setImage(result.assets[0].uri);  
         }
     };
-    
+
     const pickImageC = async () => {
         const cameraPermission = await ImagePicker.requestCameraPermissionsAsync();
         const mediaLibraryPermission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    
+
         if (cameraPermission.status !== 'granted' || mediaLibraryPermission.status !== 'granted') {
             alert('Se necesitan permisos para usar la cámara o la galería.');
             return;
         }
-    
+
         let result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
             aspect: [4, 3],
             quality: 1,
         });
-    
+
         if (!result.canceled) {
             setImage(result.assets[0].uri);  
         }
     };
-
 
     return (
         <ImageBackground
@@ -387,9 +387,13 @@ const ProfileScreen: React.FC = () => {
                             style={styles.button}
                             onPress={() => {
                                 Alert.alert('Selecciona una opción', '', [
-                                    { text: 'Cancelar', style: 'cancel' },
-                                    { text: 'Tomar una foto', onPress: pickImage },
                                     { text: 'Seleccionar de la galería', onPress: pickImageC },
+                                    { text: 'Tomar una foto', onPress: pickImage },
+                                    { text: 'Cancelar', style: 'cancel' },
+
+                                   
+                                  
+                                    
 
                                 ]);
                             }}
@@ -473,58 +477,39 @@ const styles = StyleSheet.create({
     },
     input: {
         width: '100%',
-        height: 50,
+        height: 40,
         borderColor: '#ccc',
         borderWidth: 1,
-        borderRadius: 10,
-        marginBottom: 20,
-        paddingHorizontal: 15,
-        fontSize: 16,
-        color: '#000',
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        borderRadius: 5,
+        paddingLeft: 10,
     },
     staticText: {
         fontSize: 16,
         color: 'black',
-        backgroundColor: 'rgba(255, 255, 255, 0.1)',
-        padding: 10,
-        borderRadius: 10,
     },
     button: {
-        width: '100%',
-        padding: 15,
-        backgroundColor: '#4CAF50',
-        borderRadius: 10,
-        alignItems: 'center',
-        marginTop: 10,
-        shadowColor: '#000',
-        shadowOpacity: 0.2,
-        shadowRadius: 5,
-        elevation: 5,
+        backgroundColor: '#3b5998',
+        paddingVertical: 12,
+        paddingHorizontal: 20,
+        borderRadius: 5,
+        marginVertical: 10,
     },
     buttonText: {
-        color: '#fff',
+        fontSize: 18,
+        color: 'white',
         fontWeight: 'bold',
-        fontSize: 16,
-        textTransform: 'uppercase',
     },
     profileImage: {
-        width: 200,
-        height: 200,
-        borderRadius: 100,
-        marginTop: 20,
-        borderWidth: 4,
-        borderColor: 'rgba(255, 255, 255, 0.7)',
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        marginTop: 10,
     },
     urlText: {
         marginTop: 10,
-        color: '#333',
         fontSize: 14,
+        color: 'black',
         textAlign: 'center',
-        padding: 10,
-        backgroundColor: 'rgba(255, 255, 255, 0.5)',
-        borderRadius: 5,
-        width: '100%',
     },
 });
 
