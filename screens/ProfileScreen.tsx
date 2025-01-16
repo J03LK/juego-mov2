@@ -316,7 +316,7 @@ const ProfileScreen: React.FC = () => {
 
                         {/* Nombre de usuario (No editable) */}
                     <View style={styles.inputContainer}>
-                        <Text style={styles.label}>Username:</Text>
+                        <Text style={styles.label}>Username: </Text>
                         <Text style={styles.staticText}>{userData.username}</Text>
                     </View>
 
@@ -399,7 +399,7 @@ const ProfileScreen: React.FC = () => {
                             }}
                         >
                             <Text style={styles.buttonText}>
-                                Tomar o Seleccionar Foto
+                                Tomar o Seleccionar Foto 
                             </Text>
                         </TouchableOpacity>
 
