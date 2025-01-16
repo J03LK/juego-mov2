@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, Text, StyleSheet, Alert, ActivityIndicator, ImageBackground } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, TextInput, TouchableOpacity, Text, StyleSheet, Alert, ActivityIndicator, ImageBackground, Animated } from 'react-native';
 import { ref, get } from 'firebase/database';
 import { auth, db } from '../config/firebase.config';
 import { Image } from 'react-native';
@@ -20,6 +20,9 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    // Valores para la animación
+    const scaleAnim = useRef(new Animated.Value(1)).current;
+    const rotateAnim = useRef(new Animated.Value(0)).current;
 
     const handleLogin = async () => {
         if (!email || !password) {
@@ -46,7 +49,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
                 const userFromDb = Object.values(users).find(
                     (u): u is User => (u as User).email === email
                 );
-            
+
 
                 if (userFromDb && userFromDb.username) {
                     username = userFromDb.username;
@@ -80,17 +83,72 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
         }
     };
 
+    useEffect(() => {
+        // Animación combinada de escala y rotación
+        const pulseAndRotate = Animated.parallel([
+            // Animación de pulso
+            Animated.sequence([
+                Animated.timing(scaleAnim, {
+                    toValue: 1.1,
+                    duration: 1500,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(scaleAnim, {
+                    toValue: 1,
+                    duration: 1500,
+                    useNativeDriver: true,
+                })
+            ]),
+            // Animación de rotación suave
+            Animated.sequence([
+                Animated.timing(rotateAnim, {
+                    toValue: 1,
+                    duration: 3000,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(rotateAnim, {
+                    toValue: 0,
+                    duration: 3000,
+                    useNativeDriver: true,
+                })
+            ])
+        ]);
+
+        // Hacer que la animación se repita infinitamente
+        Animated.loop(pulseAndRotate).start();
+    }, []);
+
+    const spin = rotateAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: ['0deg', '360deg']
+    });
+
+
     return (
         <ImageBackground source={require('../assets/login.png')} style={styles.img}>
             <View style={styles.overlay}>
                 <View style={styles.container}>
                     <Text style={styles.title}>Ahorcado - Login</Text>
-    
-                    <Image
-                        source={require('../assets/icono.png')}
-                        style={styles.image}
-                    />
-    
+
+                    <View style={styles.iconContainer}>
+                        <Animated.View
+                            style={[
+                                styles.animatedContainer,
+                                {
+                                    transform: [
+                                        { perspective: 1000 },
+                                        { rotateY: spin }
+                                    ]
+                                }
+                            ]}
+                        >
+                            <Animated.Image
+                                source={require('../assets/icono.png')}
+                                style={[styles.image]}
+                            />
+                        </Animated.View>
+                    </View>
+                    {/* Resto del código del return sin cambios */}
                     <TextInput
                         style={styles.input}
                         placeholder="Email"
@@ -101,7 +159,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
                         editable={!loading}
                         placeholderTextColor="rgba(0, 0, 0, 0.7)"
                     />
-    
+
                     <TextInput
                         style={styles.input}
                         placeholder="Contraseña"
@@ -111,9 +169,9 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
                         editable={!loading}
                         placeholderTextColor="rgba(0, 0, 0, 0.7)"
                     />
-    
+
                     {error ? <Text style={styles.error}>{error}</Text> : null}
-    
+
                     <TouchableOpacity
                         style={[styles.button, loading && styles.buttonDisabled]}
                         onPress={handleLogin}
@@ -125,7 +183,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
                             <Text style={styles.buttonText}>Iniciar Sesión</Text>
                         )}
                     </TouchableOpacity>
-    
+
                     <TouchableOpacity
                         onPress={() => navigation.navigate('Github')}
                         disabled={loading}
@@ -133,14 +191,14 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
                     >
                         <Text style={styles.creatorsButtonText}>Creadores</Text>
                     </TouchableOpacity>
-    
+
                     <TouchableOpacity
                         style={styles.rankingButton}
                         onPress={() => navigation.navigate('Leaderboard')}
                     >
                         <Text style={styles.buttonText}>🏆 Ver Ranking</Text>
                     </TouchableOpacity>
-    
+
                     <TouchableOpacity onPress={() => navigation.navigate('Register')} disabled={loading}>
                         <Text style={styles.link}>¿No tienes cuenta? Regístrate</Text>
                     </TouchableOpacity>
@@ -153,10 +211,21 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
     );
 }
 
+
 const styles = StyleSheet.create({
     img: {
         flex: 1,
         resizeMode: 'cover',
+    },
+    iconContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: 150,
+        marginBottom: 20,
+    },
+    animatedContainer: {
+        width: 120,
+        height: 120,
     },
     overlay: {
         flex: 1,

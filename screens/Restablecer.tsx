@@ -1,11 +1,13 @@
-import { Button, StyleSheet, Text, View, TextInput, Alert, Image, TouchableOpacity, ImageBackground } from 'react-native';
-import React, { useState } from 'react';
+import { Button, StyleSheet, Text, View, TextInput, Alert, Image, TouchableOpacity, ImageBackground, Animated } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
 // FIREBASE
 import { sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '../config/firebase.config';
 
 export default function RestablecerScreen() {
     const [email, setEmail] = useState("");
+    const scaleAnim = useRef(new Animated.Value(1)).current;
+    const rotateAnim = useRef(new Animated.Value(0)).current;
 
     function restablecer() {
         sendPasswordResetEmail(auth, email)
@@ -19,12 +21,66 @@ export default function RestablecerScreen() {
             });
     }
 
+    useEffect(() => {
+        // Animación combinada de escala y rotación
+        const pulseAndRotate = Animated.parallel([
+            // Animación de pulso
+            Animated.sequence([
+                Animated.timing(scaleAnim, {
+                    toValue: 1.1,
+                    duration: 1500,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(scaleAnim, {
+                    toValue: 1,
+                    duration: 1500,
+                    useNativeDriver: true,
+                })
+            ]),
+            // Animación de rotación suave
+            Animated.sequence([
+                Animated.timing(rotateAnim, {
+                    toValue: 1,
+                    duration: 3000,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(rotateAnim, {
+                    toValue: 0,
+                    duration: 3000,
+                    useNativeDriver: true,
+                })
+            ])
+        ]);
+
+        // Hacer que la animación se repita infinitamente
+        Animated.loop(pulseAndRotate).start();
+    }, []);
+
+    const spin = rotateAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: ['0deg', '360deg']
+    });
+
     return (
         <ImageBackground source={require('../assets/restablecer.png')} style={styles.img}>
             <View style={styles.overlay}>
                 <View style={styles.container}>
                     <Text style={styles.title}>Restablecer Contraseña</Text>
-                    <Image source={require('../assets/seguridad.png')} style={styles.image} />
+
+                    {/* Aquí convertimos la Image en Animated.Image y aplicamos las transformaciones */}
+                    <Animated.Image
+                        source={require('../assets/seguridad.png')}
+                        style={[
+                            styles.image,
+                            {
+                                transform: [
+                                    { scale: scaleAnim },
+                                    { rotate: spin }
+                                ]
+                            }
+                        ]}
+                    />
+
                     <Text style={styles.subtitle}>
                         Ingresa tu correo para recibir un enlace de restablecimiento
                     </Text>
@@ -32,7 +88,7 @@ export default function RestablecerScreen() {
                         placeholder="Correo Electrónico"
                         style={styles.input}
                         keyboardType="email-address"
-                        placeholderTextColor="rgba(0, 0, 0, 0.7)" // Cambio a un color más oscuro para el placeholder
+                        placeholderTextColor="rgba(0, 0, 0, 0.7)"
                         onChangeText={(texto) => setEmail(texto)}
                     />
                     <TouchableOpacity onPress={restablecer} style={styles.button}>
@@ -56,7 +112,7 @@ const styles = StyleSheet.create({
     },
     container: {
         width: '90%',
-        backgroundColor: 'rgba(255, 255, 255, 0.8)', 
+        backgroundColor: 'rgba(255, 255, 255, 0.8)',
         borderRadius: 20,
         padding: 20,
         alignItems: 'center',

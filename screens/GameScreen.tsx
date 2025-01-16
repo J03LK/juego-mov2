@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     View,
     Text,
@@ -8,12 +8,15 @@ import {
     ImageBackground,
     ImageSourcePropType,
     Dimensions,
+    Vibration,
+    Animated,
 } from 'react-native';
 import { Audio } from 'expo-av';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { HangmanVisual } from '../components/HangmanVisual';
 import { db } from '../config/firebase.config';
 import { ref, get, update } from 'firebase/database';
+
 
 const { width } = Dimensions.get('window');
 
@@ -204,13 +207,41 @@ export default function GameScreen({ route, navigation }: GameScreenProps) {
             return false;
         }
     };
+    const shakeAnimation = useRef(new Animated.Value(0)).current;
+    // Función para crear la animación de shake
+    const shake = () => {
+        // Configuración del patrón de vibración (en milisegundos)
+        Vibration.vibrate([0, 500, 200, 500]);
+
+        // Secuencia de animación de shake
+        Animated.sequence([
+            ...Array(4).fill(null).flatMap(() => [
+                Animated.timing(shakeAnimation, {
+                    toValue: -10,
+                    duration: 100,
+                    useNativeDriver: true
+                }),
+                Animated.timing(shakeAnimation, {
+                    toValue: 10,
+                    duration: 100,
+                    useNativeDriver: true
+                })
+            ]),
+            Animated.timing(shakeAnimation, {
+                toValue: 0,
+                duration: 100,
+                useNativeDriver: true
+            })
+        ]).start();
+    };
 
     // Modifica tus funciones existentes para incluir los sonidos
     const handleEndGame = async (): Promise<void> => {
         setIsGameActive(false);
         await updateUserScore();
         await playSound('lose');
-        
+        shake(); // Añadimos el efecto de shake
+
         Alert.alert(
             'Juego terminado',
             `¡${username}, tu puntaje final es: ${score}!`,
@@ -222,7 +253,6 @@ export default function GameScreen({ route, navigation }: GameScreenProps) {
             ]
         );
     };
-
     const startNewGame = (): void => {
         const levelData = LEVELS[currentLevel];
 
@@ -284,16 +314,16 @@ export default function GameScreen({ route, navigation }: GameScreenProps) {
 
     const guessLetter = (letter: string): void => {
         if (!isGameActive || guessedLetters.has(letter)) return;
-    
+
         const newGuessedLetters = new Set(guessedLetters);
         newGuessedLetters.add(letter);
         setGuessedLetters(newGuessedLetters);
-    
+
         if (!word.includes(letter)) {
             playSound('incorrect');
             const newWrongAttempts = wrongAttempts + 1;
             setWrongAttempts(newWrongAttempts);
-    
+
             if (newWrongAttempts >= 6) {
                 handleEndGame();
                 return;
@@ -305,7 +335,7 @@ export default function GameScreen({ route, navigation }: GameScreenProps) {
                 playSound('win');
                 const pointsForWord = 100 * currentLevel; // Define pointsForWord aquí
                 setScore((prev) => prev + pointsForWord);
-    
+
                 setWordsCompletedInLevel((prev) => {
                     const newWordsCompleted = prev + 1;
                     if (newWordsCompleted >= 3) {
@@ -313,7 +343,7 @@ export default function GameScreen({ route, navigation }: GameScreenProps) {
                     }
                     return newWordsCompleted;
                 });
-    
+
                 Alert.alert(
                     '¡Palabra Completada!',
                     `¡Conseguiste ${pointsForWord} puntos!`,
@@ -352,7 +382,7 @@ export default function GameScreen({ route, navigation }: GameScreenProps) {
             ]
         );
     };
-    
+
     const [sounds, setSounds] = useState<GameSounds>({
         correct: null,
         incorrect: null,
@@ -414,70 +444,93 @@ export default function GameScreen({ route, navigation }: GameScreenProps) {
         }
     };
 
+    const qwertyRows = [
+        'QWERTYUIOP',
+        'ASDFGHJKLÑ',
+        'ZXCVBNM',
+    ];
 
     return (
         <ImageBackground
             source={LEVELS[currentLevel].background}
             style={styles.container}
         >
-            <View style={[styles.overlay, { backgroundColor: 'rgba(255, 255, 255, 0.5)' }]}>
-                {/* Botones de Salir y Ranking */}
-                <View style={styles.headerButtons}>
-                    <TouchableOpacity
-                        style={styles.headerButton}
-                        onPress={handleExitGame}
-                    >
-                        <Text style={styles.headerButtonText}>🚪 Salir</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        style={styles.headerButton}
-                        onPress={() => navigation.navigate('Profile', { username })}
-                    >
-                        <Text style={styles.headerButtonText}>📜 Perfil</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        style={styles.headerButton}
-                        onPress={() => navigation.navigate('Leaderboard')}
-                    >
-                        <Text style={styles.headerButtonText}>🏆 Ranking</Text>
-                    </TouchableOpacity>
-                </View>
-
-                {/* Información del nivel */}
-                <Text style={styles.levelText}>Nivel {currentLevel}</Text>
-                <Text style={styles.timer}>⏱️ {formatTime(timeRemaining)}</Text>
-                <Text style={styles.score}>Puntuación: {score}</Text>
-                <Text style={styles.progress}>Palabras: {wordsCompletedInLevel}/3</Text>
-
-                {/* Visualización de la pista */}
-                <View style={styles.hintContainer}>
-                    <Text style={styles.hintText}>Pista: {currentHint}</Text>
-                </View>
-
-                <HangmanVisual wrongAttempts={wrongAttempts} />
-
-                <Text style={styles.word}>{getDisplayWord()}</Text>
-
-                <View style={styles.keyboard}>
-                    {'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ'.split('').map((letter) => (
+            <Animated.View
+                style={[
+                    styles.overlay,
+                    {
+                        backgroundColor: 'rgba(255, 255, 255, 0.5)',
+                        transform: [{
+                            translateX: shakeAnimation
+                        }]
+                    }
+                ]}
+            >
+                <View style={[styles.overlay, { backgroundColor: 'rgba(255, 255, 255, 0.5)' }]}>
+                    {/* Botones de Salir y Ranking */}
+                    <View style={styles.headerButtons}>
                         <TouchableOpacity
-                            key={letter}
-                            style={[styles.letter, guessedLetters.has(letter) && styles.letterUsed]}
-                            onPress={() => guessLetter(letter)}
-                            disabled={guessedLetters.has(letter)}
+                            style={styles.headerButton}
+                            onPress={handleExitGame}
                         >
-                            <Text
-                                style={[styles.letterText, guessedLetters.has(letter) && styles.letterUsedText]}
-                            >
-                                {letter}
-                            </Text>
+                            <Text style={styles.headerButtonText}>🚪 Salir</Text>
                         </TouchableOpacity>
-                    ))}
+                        <TouchableOpacity
+                            style={styles.headerButton}
+                            onPress={() => navigation.navigate('Profile', { username })}
+                        >
+                            <Text style={styles.headerButtonText}>📜 Perfil</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={styles.headerButton}
+                            onPress={() => navigation.navigate('Leaderboard')}
+                        >
+                            <Text style={styles.headerButtonText}>🏆 Ranking</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    {/* Información del nivel */}
+                    <Text style={styles.levelText}>Nivel {currentLevel}</Text>
+                    <Text style={styles.timer}>⏱️ {formatTime(timeRemaining)}</Text>
+                    <Text style={styles.score}>Puntuación: {score}</Text>
+                    <Text style={styles.progress}>Palabras: {wordsCompletedInLevel}/3</Text>
+
+                    {/* Visualización de la pista */}
+                    <View style={styles.hintContainer}>
+                        <Text style={styles.hintText}>Pista: {currentHint}</Text>
+                    </View>
+
+                    <HangmanVisual wrongAttempts={wrongAttempts} />
+
+                    <Text style={styles.word}>{getDisplayWord()}</Text>
+
+                    <View style={styles.keyboard}>
+                        {qwertyRows.map((row, rowIndex) => (
+                            <View key={rowIndex} style={styles.letterRow}>
+                                {row.split('').map((letter) => (
+                                    <TouchableOpacity
+                                        key={letter}
+                                        style={[styles.letter, guessedLetters.has(letter) && styles.letterUsed]}
+                                        onPress={() => guessLetter(letter)}
+                                        disabled={guessedLetters.has(letter)}
+                                    >
+                                        <Text
+                                            style={[styles.letterText, guessedLetters.has(letter) && styles.letterUsedText]}
+                                        >
+                                            {letter}
+                                        </Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+                        ))}
+                    </View>
+
                 </View>
-            </View>
+
+            </Animated.View>
         </ImageBackground>
     );
-}
+};
 
 const styles = StyleSheet.create({
     container: {
@@ -499,6 +552,9 @@ const styles = StyleSheet.create({
         padding: 10,
         backgroundColor: '#007AFF',
         borderRadius: 10,
+        marginBottom: 10, // Espacio abajo
+        marginLeft: 20,    // Espacio a la izquierda
+        marginRight: 5
     },
     headerButtonText: {
         color: 'white',
@@ -532,7 +588,6 @@ const styles = StyleSheet.create({
     word: {
         fontSize: 36,
         letterSpacing: 5,
-        marginVertical: 20,
         fontWeight: 'bold',
         color: '#333',
     },
@@ -540,29 +595,35 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         flexWrap: 'wrap',
         justifyContent: 'center',
-        marginTop: 10,
-        paddingHorizontal: 10,
+        marginTop: 30, // Mantenerlo ajustado para que esté más abajo
+        paddingHorizontal: 20, // Incrementado para añadir más espacio horizontal
     },
     letter: {
-        width: 40,
-        height: 40,
-        margin: 3,
+        width: 35, // Reducido para que las teclas sean más pequeñas
+        height: 35,
+        margin: 4, // Ajustado para mejorar la separación entre teclas
         backgroundColor: '#007AFF',
         justifyContent: 'center',
         alignItems: 'center',
-        borderRadius: 5,
+        borderRadius: 10, // Mantener las esquinas redondeadas
     },
     letterUsed: {
         backgroundColor: '#ccc',
     },
     letterText: {
         color: 'white',
-        fontSize: 20,
+        fontSize: 18, // Reducido para que el texto se ajuste mejor en teclas más pequeñas
         fontWeight: 'bold',
     },
     letterUsedText: {
-        color: '#ccc',
+        color: 'black',
     },
+    letterRow: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+    },
+
+
     hintContainer: {
         backgroundColor: '#ccc',
         padding: 10,

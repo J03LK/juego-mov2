@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
     View,
     TextInput,
@@ -9,7 +9,8 @@ import {
     ActivityIndicator,
     Dimensions,
     Image,
-    ImageBackground
+    ImageBackground,
+    Animated
 } from 'react-native';
 import { ref, set } from 'firebase/database';
 import { auth, db } from '../config/firebase.config';
@@ -25,6 +26,10 @@ export default function RegisterScreen() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const navigation = useNavigation();
+
+    // Valores para la animación
+    const scaleAnim = useRef(new Animated.Value(1)).current;
+    const rotateAnim = useRef(new Animated.Value(0)).current;
 
     const handleRegister = async () => {
         if (!username || !email || !password) {
@@ -92,6 +97,48 @@ export default function RegisterScreen() {
         }
     };
 
+    useEffect(() => {
+        // Animación combinada de escala y rotación
+        const pulseAndRotate = Animated.parallel([
+            // Animación de pulso
+            Animated.sequence([
+                Animated.timing(scaleAnim, {
+                    toValue: 1.1,
+                    duration: 1500,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(scaleAnim, {
+                    toValue: 1,
+                    duration: 1500,
+                    useNativeDriver: true,
+                })
+            ]),
+            // Animación de rotación suave
+            Animated.sequence([
+                Animated.timing(rotateAnim, {
+                    toValue: 1,
+                    duration: 3000,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(rotateAnim, {
+                    toValue: 0,
+                    duration: 3000,
+                    useNativeDriver: true,
+                })
+            ])
+        ]);
+
+        // Hacer que la animación se repita infinitamente
+        Animated.loop(pulseAndRotate).start();
+    }, []);
+
+    const spin = rotateAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: ['0deg', '360deg']
+    });
+
+    
+
     return (
         <ImageBackground
             source={require('../assets/registro.png')}
@@ -101,10 +148,24 @@ export default function RegisterScreen() {
                 <View style={styles.container}>
                     <Text style={styles.title}>Registro</Text>
 
-                    <Image
-                        source={require('../assets/icono.png')}
-                        style={styles.image}
-                    />
+                    <View style={styles.iconContainer}>
+                        <Animated.View
+                            style={[
+                                styles.animatedContainer,
+                                {
+                                    transform: [
+                                        { perspective: 1000 },
+                                        { rotateY: spin }
+                                    ]
+                                }
+                            ]}
+                        >
+                            <Animated.Image
+                                source={require('../assets/icono.png')}
+                                style={[styles.image]}
+                            />
+                        </Animated.View>
+                    </View>
 
                     <TextInput
                         style={styles.input}
@@ -158,9 +219,19 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
+    iconContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: 150,
+        marginBottom: 20,
+    },
+    animatedContainer: {
+        width: 120,
+        height: 120,
+    },
     container: {
         width: '90%',
-        backgroundColor: 'rgba(255, 255, 255, 0.8)', 
+        backgroundColor: 'rgba(255, 255, 255, 0.8)',
         padding: 20,
         borderRadius: 15,
         alignItems: 'center',
