@@ -4,7 +4,7 @@
     "slug": "Juego-Ahorcado",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "https://cdn-icons-png.flaticon.com/512/2273/2273583.png",
+    "icon": "./assets/icono.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
@@ -16,13 +16,20 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.tuempresa.juegoahorcado",
+      "versionCode": 1,
       "adaptiveIcon": {
-        "foregroundImage": "https://cdn-icons-png.flaticon.com/512/2273/2273583.png",
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#E6F7FF"
       }
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "528077f1-d228-4606-a41b-97b4f6d3c169"
+      }
     }
   }
 }
